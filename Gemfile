@@ -3,6 +3,8 @@
 source 'https://rubygems.org'
 ruby '3.4.4'
 
+gem 'money', '~> 6.16'
+
 group :development do
   gem 'fasterer', require: false
   gem 'flog', require: false
