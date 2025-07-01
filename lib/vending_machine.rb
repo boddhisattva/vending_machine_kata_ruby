@@ -1,3 +1,5 @@
+require 'money'
+
 class VendingMachine
   def initialize(items, balance)
     @items = items
