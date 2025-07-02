@@ -36,7 +36,7 @@ class VendingMachine
   end
 
   def calculate_change_to_give_user(amount, item_price)
-    change_in_cents = amount - item_price.cents if amount > item_price.cents
+    change_in_cents = amount > item_price.cents ? amount - item_price.cents : 0
     change_in_cents > 0 ? Change.new(Money.new(change_in_cents, 'GBP')) : Change.new(Money.new(0, 'GBP'))
   end
 
