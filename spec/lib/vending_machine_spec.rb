@@ -21,7 +21,7 @@ describe VendingMachine do
           it 'returns the item & balance' do
             vending_machine = VendingMachine.new(items, balance)
             expect(vending_machine.select_item('Coke',
-                                               200)).to eq([selected_item.name, 50, 'Thank you for your purchase!'])
+                                               200)).to eq("Thank you for your purchase of #{selected_item.name}. Please collect your item and change: 50")
           end
         end
 
@@ -29,9 +29,23 @@ describe VendingMachine do
           it 'returns the item & balance' do
             vending_machine = VendingMachine.new(items, balance)
             expect(vending_machine.select_item('Coke',
-                                               150)).to eq([selected_item.name, 0, 'Thank you for your purchase!'])
+                                               150)).to eq("Thank you for your purchase of #{selected_item.name}. Please collect your item.")
           end
         end
+
+        context 'when the user pays less than the item price' do
+          it 'clearly specifies the remaining amount pending' do
+            vending_machine = VendingMachine.new(items, balance)
+            expect(vending_machine.select_item('Coke',
+                                               100)).to eq('You need to pay 50 more cents to purchase Coke')
+          end
+        end
+
+        # context 'when the quantity of the item is 0' do
+        # end
+
+        # context 'change given in valid amount type' do
+        # end check the coins specified are valid
       end
     end
   end
