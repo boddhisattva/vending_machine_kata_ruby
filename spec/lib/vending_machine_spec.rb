@@ -41,8 +41,17 @@ describe VendingMachine do
           end
         end
 
-        # context 'when the quantity of the item is 0' do
-        # end
+        context 'when the quantity of the item is 0' do
+          let(:item_quantity) { 0 }
+          let(:items) { [Item.new('Coke', 150, item_quantity)] }
+          it 'returns an error message' do
+            vending_machine = VendingMachine.new(items, balance)
+            expect(vending_machine.select_item('Coke',
+                                               150)).to eq('Item not available')
+          end
+        end
+
+
 
         # context 'change given in valid amount type' do
         # end check the coins specified are valid

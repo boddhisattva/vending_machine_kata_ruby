@@ -8,7 +8,7 @@ class VendingMachine
 
   def select_item(item_name, amount)
     item = items.find { |item| item.name == item_name }
-    if check_item_availability(item) && balance.amount >= item.price
+    if item_available?(item) && balance.amount >= item.price
       change = process_payment(item.price, amount)
       change >= 0 ? confirm_payment(item, change) : specify_amount_pending(item, change)
     else
@@ -33,7 +33,7 @@ class VendingMachine
     "You need to pay #{change.abs} more cents to purchase #{item.name}"
   end
 
-  def check_item_availability(item)
+  def item_available?(item)
     if item && item.quantity > 0
       true
     else
