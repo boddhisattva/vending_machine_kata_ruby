@@ -17,6 +17,10 @@ class Change
 
   attr_reader :amount
 
+  def calculate_total_amount
+    amount.sum { |coin_denomination, quantity| coin_denomination * quantity }
+  end
+
   private
 
   def coins_in_acceptable_denominations?(amount)

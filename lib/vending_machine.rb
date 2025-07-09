@@ -6,13 +6,22 @@ class VendingMachine
     @balance = balance
   end
 
-  def select_item(item_name, amount)
+  def select_item(item_name, payment)
     item = items.find { |item| item.name == item_name }
-    if item_available?(item) && balance.amount >= item.price
-      change = process_payment(item.price, amount)
+    return 'Item not available' unless item_available?(item)
+
+    # Validate payment denominations
+    unless payment.keys.all? { |denom| Change::ACCEPTABLE_COINS.include?(denom) }
+      return "Invalid coin denomination in payment: #{payment.keys - Change::ACCEPTABLE_COINS}"
+    end
+
+    total_payment_for_item = payment.sum { |denom, count| denom * count }
+
+    if total_payment_for_item >= item.price
+      change = process_payment(item.price, payment, total_payment_for_item)
       change >= 0 ? confirm_payment(item, change) : specify_amount_pending(item, change)
     else
-      'Item not available'
+      specify_amount_pending(item, total_payment_for_item - item.price)
     end
   end
 
@@ -20,6 +29,10 @@ class VendingMachine
   attr_accessor :balance
 
   private
+
+  def calculate_total_balance
+    @balance.calculate_total_amount
+  end
 
   def confirm_payment(item, change)
     if change > 0
@@ -41,29 +54,47 @@ class VendingMachine
     end
   end
 
-  def process_payment(item_price, amount) # TODO: Improve this logic to handle more use cases
-    change = if amount >= item_price.cents
-               calculate_change_to_give_user(amount,
-                                             item_price)
-             else
-               calculate_difference_amount_pending(
-                 amount, item_price
-               )
-             end
-  end
-
-  def calculate_change_to_give_user(amount, item_price)
-    change_in_cents = amount > item_price.cents ? amount - item_price.cents : 0
-    update_machine_balance(amount, change_in_cents)
+  def process_payment(item_price, payment, total_payment_for_item)
+    change_in_cents = total_payment_for_item > item_price ? total_payment_for_item - item_price : 0
+    update_machine_balance(payment, change_in_cents)
     change_in_cents
   end
 
-  def calculate_difference_amount_pending(amount, item_price)
-    amount - item_price.cents
+  def update_machine_balance(payment, change_in_cents)
+    # Add the payment coins to the machine's balance
+    new_balance = @balance.amount.dup
+    payment.each do |denom, count|
+      new_balance[denom] ||= 0
+      new_balance[denom] += count
+    end
+
+    # Subtract the change given to the user from the updated balance
+    new_balance = subtract_change_from_balance(new_balance, change_in_cents) if change_in_cents && change_in_cents > 0
+
+    @balance = Change.new(new_balance)
   end
 
-  def update_machine_balance(amount, change_in_cents)
-    new_balance_cents = @balance.amount.cents + amount - (change_in_cents || 0)
-    @balance = Change.new(Money.new(new_balance_cents, 'GBP'))
+  def subtract_change_from_balance(balance, change_amount)
+    # Calculate change using available denominations
+    remaining_change = change_amount
+    new_balance = balance.dup
+
+    # Sort denominations in descending order to give larger coins first
+    Change::ACCEPTABLE_COINS.sort.reverse.each do |denomination|
+      next if remaining_change <= 0
+
+      available_coins = new_balance[denomination] || 0
+      coins_to_give = [available_coins, remaining_change / denomination].min
+
+      if coins_to_give > 0
+        new_balance[denomination] = available_coins - coins_to_give
+        remaining_change -= coins_to_give * denomination
+      end
+    end
+
+    # Remove denominations with zero quantity
+    new_balance.reject! { |_, quantity| quantity <= 0 }
+
+    new_balance
   end
 end
