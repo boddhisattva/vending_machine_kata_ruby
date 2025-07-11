@@ -18,7 +18,7 @@ class VendingMachine
     total_payment_for_item = payment.sum { |denom, count| denom * count }
 
     if total_payment_for_item >= item.price
-      change = process_payment(item.price, payment, total_payment_for_item)
+      change = process_payment(item, payment, total_payment_for_item)
       change >= 0 ? confirm_payment(item, change) : specify_amount_pending(item, change)
     else
       specify_amount_pending(item, total_payment_for_item - item.price)
@@ -35,9 +35,6 @@ class VendingMachine
   end
 
   def confirm_payment(item, change)
-    # Decrement item quantity after successful purchase
-    item.quantity -= 1
-
     if change > 0
       "Thank you for your purchase of #{item.name}. Please collect your item and change: #{change}"
     else
@@ -57,8 +54,11 @@ class VendingMachine
     end
   end
 
-  def process_payment(item_price, payment, total_payment_for_item)
-    change_in_cents = total_payment_for_item > item_price ? total_payment_for_item - item_price : 0
+  def process_payment(item, payment, total_payment_for_item)
+    change_in_cents = total_payment_for_item > item.price ? total_payment_for_item - item.price : 0
+    # Decrement item quantity after successful purchase
+    item.quantity -= 1
+
     update_machine_balance(payment, change_in_cents)
     change_in_cents
   end
