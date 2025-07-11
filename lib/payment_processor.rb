@@ -2,18 +2,14 @@ class PaymentProcessor
   def process_payment(item, payment, items, balance)
     @balance = balance  # Store the balance as instance variable
     # TODO: Consider later if @balance needs to be an instance variable or a local variable/parameter
-    return ['Item not available', balance] unless item_available?(item)
 
-    # Validate payment denominations
-    unless payment_denominations_valid?(payment)
-      return ["Invalid coin denomination in payment: #{payment.keys - Change::ACCEPTABLE_COINS}", balance]
-    end
+    validation_result = validate_purchase(item, payment)
+    return validation_result unless validation_result.nil?
 
     total_payment_for_item = payment.sum { |denom, count| denom * count }
 
-    unless total_payment_for_item >= item.price
-      return [specify_amount_pending(item, total_payment_for_item - item.price), balance]
-    end
+    payment_validation = validate_payment_amount(item, total_payment_for_item)
+    return payment_validation unless payment_validation.nil?
 
     change = process_change(item, payment, total_payment_for_item)
     if change >= 0
@@ -23,6 +19,24 @@ class PaymentProcessor
     else
       [specify_amount_pending(item, change), balance]
     end
+  end
+
+  private
+
+  def validate_purchase(item, payment)
+    return ['Item not available', @balance] unless item_available?(item)
+    return validate_payment_denominations(payment) unless payment_denominations_valid?(payment)
+    nil
+  end
+
+  def validate_payment_amount(item, total_payment_for_item)
+    return [specify_amount_pending(item, total_payment_for_item - item.price), @balance] unless total_payment_for_item >= item.price
+    nil
+  end
+
+  def validate_payment_denominations(payment)
+    invalid_denominations = payment.keys - Change::ACCEPTABLE_COINS
+    ["Invalid coin denomination in payment: #{invalid_denominations}", @balance]
   end
 
   def payment_denominations_valid?(payment)
@@ -46,11 +60,7 @@ class PaymentProcessor
   end
 
   def item_available?(item)
-    if item && item.quantity > 0
-      true
-    else
-      false
-    end
+    item && item.quantity > 0
   end
 
   def process_change(item, payment, total_payment_for_item)
