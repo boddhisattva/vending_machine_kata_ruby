@@ -11,24 +11,38 @@ class VendingMachine
     return 'Item not available' unless item_available?(item)
 
     # Validate payment denominations
-    unless payment.keys.all? { |denom| Change::ACCEPTABLE_COINS.include?(denom) }
+    unless payment_denominations_valid?(payment)
       return "Invalid coin denomination in payment: #{payment.keys - Change::ACCEPTABLE_COINS}"
     end
 
-    total_payment_for_item = payment.sum { |denom, count| denom * count }
-
-    if total_payment_for_item >= item.price
-      change = process_payment(item, payment, total_payment_for_item)
-      change >= 0 ? confirm_payment(item, change) : specify_amount_pending(item, change)
-    else
-      specify_amount_pending(item, total_payment_for_item - item.price)
-    end
+    process_payment(item, payment)
   end
 
   attr_reader :items
   attr_accessor :balance
 
   private
+
+  def process_payment(item, payment)
+    total_payment_for_item = payment.sum { |denom, count| denom * count }
+
+    unless total_payment_for_item >= item.price
+      return specify_amount_pending(item, total_payment_for_item - item.price)
+    end
+
+    change = process_change(item, payment, total_payment_for_item)
+    if change >= 0
+      # Decrement item quantity after successful purchase
+      item.quantity -= 1
+      confirm_payment(item, change)
+    else
+      specify_amount_pending(item, change)
+    end
+  end
+
+  def payment_denominations_valid?(payment)
+    payment.keys.all? { |denom| Change::ACCEPTABLE_COINS.include?(denom) }
+  end
 
   def calculate_total_balance
     @balance.calculate_total_amount
@@ -54,10 +68,8 @@ class VendingMachine
     end
   end
 
-  def process_payment(item, payment, total_payment_for_item)
+  def process_change(item, payment, total_payment_for_item)
     change_in_cents = total_payment_for_item > item.price ? total_payment_for_item - item.price : 0
-    # Decrement item quantity after successful purchase
-    item.quantity -= 1
 
     update_machine_balance(payment, change_in_cents)
     change_in_cents
