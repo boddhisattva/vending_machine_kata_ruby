@@ -8,12 +8,6 @@ class VendingMachine
 
   def select_item(item_name, payment)
     item = items.find { |item| item.name == item_name }
-    return 'Item not available' unless item_available?(item)
-
-    # Validate payment denominations
-    unless payment_denominations_valid?(payment)
-      return "Invalid coin denomination in payment: #{payment.keys - Change::ACCEPTABLE_COINS}"
-    end
 
     process_payment(item, payment)
   end
@@ -24,6 +18,13 @@ class VendingMachine
   private
 
   def process_payment(item, payment)
+    return 'Item not available' unless item_available?(item)
+
+    # Validate payment denominations
+    unless payment_denominations_valid?(payment)
+      return "Invalid coin denomination in payment: #{payment.keys - Change::ACCEPTABLE_COINS}"
+    end
+
     total_payment_for_item = payment.sum { |denom, count| denom * count }
 
     unless total_payment_for_item >= item.price
