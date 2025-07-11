@@ -49,14 +49,29 @@ describe VendingMachine do
             expected_total = initial_balance.sum { |denomination, count| denomination * count } + 200 - 50
             expect(vending_machine.balance.calculate_total_amount).to eq(expected_total)
           end
+
+          it 'decrements the item quantity after successful purchase' do
+            vending_machine = VendingMachine.new(items, balance)
+            coke_item = vending_machine.items.find { |item| item.name == 'Coke' }
+            initial_quantity = coke_item.quantity
+
+            vending_machine.select_item('Coke', { 200 => 1 })
+
+            expect(coke_item.quantity).to eq(initial_quantity - 1)
+          end
         end
 
         context 'when the user pays the exact amount' do
-          it 'returns the item & no change is given' do
+          it 'returns the item & no change is given & it also decrements the item quantity' do
             vending_machine = VendingMachine.new(items, balance)
+            coke_item = vending_machine.items.find { |item| item.name == 'Coke' }
+            initial_quantity = coke_item.quantity
+
             expect(vending_machine.select_item('Coke',
                                                { 100 => 1,
-                                                 50 => 1 })).to eq("Thank you for your purchase of #{selected_item.name}. Please collect your item.")
+                                                 50 => 1 })).to eq("Thank you for your purchase of Coke. Please collect your item.")
+
+            expect(coke_item.quantity).to eq(initial_quantity - 1)
           end
         end
 
@@ -65,6 +80,16 @@ describe VendingMachine do
             vending_machine = VendingMachine.new(items, balance)
             expect(vending_machine.select_item('Coke',
                                                { 100 => 1 })).to eq('You need to pay 50 more cents to purchase Coke')
+          end
+
+          it 'does not decrement the item quantity for failed purchase' do
+            vending_machine = VendingMachine.new(items, balance)
+            coke_item = vending_machine.items.find { |item| item.name == 'Coke' }
+            initial_quantity = coke_item.quantity
+
+            vending_machine.select_item('Coke', { 100 => 1 })
+
+            expect(coke_item.quantity).to eq(initial_quantity)
           end
         end
 
@@ -75,6 +100,21 @@ describe VendingMachine do
             vending_machine = VendingMachine.new(items, balance)
             expect(vending_machine.select_item('Coke',
                                                150)).to eq('Item not available')
+          end
+        end
+
+        context 'when purchasing the last item' do
+          let(:items) { [Item.new('Coke', 150, 1)] }
+          it 'decrements quantity to 0 and item becomes unavailable' do
+            vending_machine = VendingMachine.new(items, balance)
+            coke_item = vending_machine.items.find { |item| item.name == 'Coke' }
+
+            # First purchase should succeed
+            expect(vending_machine.select_item('Coke', { 200 => 1 })).to eq("Thank you for your purchase of Coke. Please collect your item and change: 50")
+            expect(coke_item.quantity).to eq(0)
+
+            # Second purchase should fail
+            expect(vending_machine.select_item('Coke', { 200 => 1 })).to eq('Item not available')
           end
         end
 

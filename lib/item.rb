@@ -7,5 +7,6 @@ class Item
     @quantity = quantity
   end
 
-  attr_reader :name, :price, :quantity
+  attr_reader :name, :price
+  attr_accessor :quantity
 end
