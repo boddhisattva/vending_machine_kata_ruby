@@ -35,6 +35,9 @@ class VendingMachine
   end
 
   def confirm_payment(item, change)
+    # Decrement item quantity after successful purchase
+    item.quantity -= 1
+
     if change > 0
       "Thank you for your purchase of #{item.name}. Please collect your item and change: #{change}"
     else
