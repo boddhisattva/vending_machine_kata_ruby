@@ -1,46 +1,45 @@
 class PaymentProcessor
+  def initialize(payment_validator = PaymentValidator.new)
+    @payment_validator = payment_validator
+  end
+
   def process_payment(item, payment, items, balance)
     @balance = balance  # Store the balance as instance variable
     # TODO: Consider later if @balance needs to be an instance variable or a local variable/parameter
 
-    validation_result = validate_purchase(item, payment)
+    validation_result = @payment_validator.validate_purchase
+    #TODO: Improve further aftewards for success , return true and also method name refactor to purcchase_valid?(item, payment, @balance)
     return validation_result unless validation_result.nil?
 
     total_payment_for_item = payment.sum { |denom, count| denom * count }
 
-    payment_validation = validate_payment_amount(item, total_payment_for_item)
+    payment_validation = @payment_validator.validate_payment_amount(item, total_payment_for_item, @balance)
     return payment_validation unless payment_validation.nil?
 
-    change = process_change(item, payment, total_payment_for_item)
-    if change >= 0
-      # Decrement item quantity after successful purchase
-      item.quantity -= 1
-      [confirm_payment(item, change), @balance]
-    else
-      [specify_amount_pending(item, change), balance]
-    end
+    process_transaction(item, payment, total_payment_for_item)
   end
 
   private
 
-  def validate_purchase(item, payment)
-    return ['Item not available', @balance] unless item_available?(item)
-    return validate_payment_denominations(payment) unless payment_denominations_valid?(payment)
-    nil
+  def process_transaction(item, payment, total_payment_for_item)
+    change = process_change_transaction(item, payment, total_payment_for_item)
+
+    if change >= 0
+      complete_successful_transaction(item, change)
+    else
+      [specify_amount_pending(item, change), @balance]
+    end
   end
 
-  def validate_payment_amount(item, total_payment_for_item)
-    return [specify_amount_pending(item, total_payment_for_item - item.price), @balance] unless total_payment_for_item >= item.price
-    nil
+  def process_change_transaction(item, payment, total_payment_for_item)
+    change_in_cents = total_payment_for_item > item.price ? total_payment_for_item - item.price : 0
+    update_machine_balance(payment, change_in_cents)
+    change_in_cents
   end
 
-  def validate_payment_denominations(payment)
-    invalid_denominations = payment.keys - Change::ACCEPTABLE_COINS
-    ["Invalid coin denomination in payment: #{invalid_denominations}", @balance]
-  end
-
-  def payment_denominations_valid?(payment)
-    payment.keys.all? { |denom| Change::ACCEPTABLE_COINS.include?(denom) }
+  def complete_successful_transaction(item, change)
+    item.quantity -= 1
+    [confirm_payment(item, change), @balance]
   end
 
   def calculate_total_balance
@@ -57,17 +56,6 @@ class PaymentProcessor
 
   def specify_amount_pending(item, change)
     "You need to pay #{change.abs} more cents to purchase #{item.name}"
-  end
-
-  def item_available?(item)
-    item && item.quantity > 0
-  end
-
-  def process_change(item, payment, total_payment_for_item)
-    change_in_cents = total_payment_for_item > item.price ? total_payment_for_item - item.price : 0
-
-    update_machine_balance(payment, change_in_cents)
-    change_in_cents
   end
 
   def update_machine_balance(payment, change_in_cents)
