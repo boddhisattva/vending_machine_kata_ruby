@@ -1,3 +1,5 @@
+require_relative 'payment_validator'
+
 class PaymentProcessor
   def initialize(payment_validator = PaymentValidator.new)
     @payment_validator = payment_validator
@@ -7,8 +9,7 @@ class PaymentProcessor
     @balance = balance  # Store the balance as instance variable
     # TODO: Consider later if @balance needs to be an instance variable or a local variable/parameter
 
-    validation_result = @payment_validator.validate_purchase
-    #TODO: Improve further aftewards for success , return true and also method name refactor to purcchase_valid?(item, payment, @balance)
+    validation_result = @payment_validator.validate_purchase(item, payment, @balance)
     return validation_result unless validation_result.nil?
 
     total_payment_for_item = payment.sum { |denom, count| denom * count }
@@ -32,7 +33,8 @@ class PaymentProcessor
   end
 
   def process_change_transaction(item, payment, total_payment_for_item)
-    change_in_cents = total_payment_for_item > item.price ? total_payment_for_item - item.price : 0
+    item_price_in_cents = item.price  # Price is already in cents
+    change_in_cents = total_payment_for_item > item_price_in_cents ? total_payment_for_item - item_price_in_cents : 0
     update_machine_balance(payment, change_in_cents)
     change_in_cents
   end
@@ -55,7 +57,8 @@ class PaymentProcessor
   end
 
   def specify_amount_pending(item, change)
-    "You need to pay #{change.abs} more cents to purchase #{item.name}"
+    pending_amount = change.abs
+    "You need to pay #{pending_amount} more cents to purchase #{item.name}"
   end
 
   def update_machine_balance(payment, change_in_cents)

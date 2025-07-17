@@ -149,4 +149,39 @@ describe VendingMachine do
       end
     end
   end
+
+  describe 'Session-based API' do
+    before do
+      @items = [Item.new('Coke', 150, 2)]
+      @balance = Change.new({ 100 => 2, 50 => 2, 10 => 5 })
+      @machine = VendingMachine.new(@items, @balance)
+    end
+
+    it 'handles full happy path: start, insert, complete' do
+      start = @machine.start_purchase('Coke')
+      expect(start).to include('Please insert 150 cents')
+      session_id = @machine.instance_variable_get(:@current_session_id)
+      pay1 = @machine.insert_payment({100 => 1})
+      expect(pay1).to include('Please insert 50 more cents')
+      pay2 = @machine.insert_payment({50 => 1})
+      expect(pay2).to include('Thank you for your purchase')
+    end
+
+    it 'handles partial payment and accumulation' do
+      @machine.start_purchase('Coke')
+      @machine.insert_payment({50 => 1})
+      msg = @machine.insert_payment({100 => 1})
+      expect(msg).to include('Thank you for your purchase')
+    end
+
+    it 'returns error if item not found' do
+      msg = @machine.start_purchase('Pepsi')
+      expect(msg).to eq('Item not found')
+    end
+
+    it 'old purchase_item API still works' do
+      result = @machine.purchase_item('Coke', {200 => 1})
+      expect(result).to include('Thank you for your purchase')
+    end
+  end
 end
