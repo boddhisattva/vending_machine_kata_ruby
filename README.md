@@ -1,53 +1,60 @@
-# Vending Machine Kata
-
-A Ruby implementation of a vending machine that handles product selection, money insertion, and change management using the Money gem for robust currency handling.
+# Vending Machine Kata (Ruby)
 
 ## Features
+- Default currency: Euro (€)
+- Supports session-based purchase flow (recommended for extensibility and real-world use)
+- Coin denominations supported: 1, 2, 5, 10, 20, 50, 100, 200 cents
+- Displays available change and coin breakdown in plain English
 
-- Product selection and inventory management
-- Money insertion with proper currency handling
-- Change calculation and return
-- Support for UK currency denominations (1p, 2p, 5p, 10p, 20p, 50p, £1, £2)
-- Inventory and balance tracking
+## Usage
 
-## Architecture
+### Running the CLI
 
-The system is built around three main classes:
-
-- **VendingMachine**: Main orchestrator that manages items and balance
-- **Item**: Represents products with name and price (using Money objects)
-- **Change**: Handles monetary denominations using the Money gem
-
-## Currency Handling
-
-This implementation uses the [Money gem](https://github.com/RubyMoney/money) for:
-- Precise currency calculations
-- Proper handling of pence and pounds
-- Type safety for monetary values
-- Support for UK currency (GBP)
-
-All monetary values are handled as Money objects with amounts in pence (e.g., £1.50 = Money.new(150, 'GBP')).
-
-## Development
-
-### Setup
-```bash
-bundle install
+```sh
+ruby bin/vending_machine_cli.rb
 ```
 
-### Running Tests
-```bash
-bundle exec rspec
+### CLI Options
+- **1. Display available items**
+- **2. Purchase item with session (recommended)**
+  - Select item by number
+  - Enter payment as a hash, e.g. `{100 => 2, 50 => 1}` for €2.50
+  - You can insert more coins until the price is met
+  - Type `cancel` to cancel the session
+- **3. Display current balance**
+- **4. Return change**
+- **5. Display machine status**
+- **q. Quit**
+
+### Example Payment Format
+- `{100 => 2, 50 => 1}` means 2 €1 coins and 1 50-cent coin (total: €2.50)
+- Valid denominations: 1, 2, 5, 10, 20, 50, 100, 200 (all in cents)
+
+### Initial Machine Balance
+The machine starts with the following coins:
+```
+{
+  50 => 6,
+  10 => 10,
+  20 => 10,
+  100 => 2,
+  200 => 1,
+  5 => 10,
+  2 => 10,
+  1 => 2
+}
 ```
 
-### Code Quality
-```bash
-bundle exec rubocop
+## Notes
+- All currency is displayed as Euro (€) with two decimals (e.g., `€1.50`)
+- Only the session-based purchase flow is supported (no legacy/one-step purchase)
+- Coin breakdown is always shown in plain English
+
+## Running the Demo
+
+```sh
+ruby bin/demo.rb
 ```
 
-## User Stories
+This will run a scripted demo of the vending machine's features.
 
-**User Story 1**: As a user I want to select a product and also insert the amount of money required, so that I can purchase it from the machine
-
-- User should be able to select a product if it exists
-- User should be able to see the inventory & stock balance at a given point in time
