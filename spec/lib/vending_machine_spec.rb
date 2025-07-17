@@ -33,7 +33,7 @@ describe VendingMachine do
           it 'returns the item & balance' do
             vending_machine = VendingMachine.new(items, balance)
             expect(vending_machine.purchase_item('Coke',
-                                               { 200 => 1 })).to eq("Thank you for your purchase of #{selected_item.name}. Please collect your item and change: 50")
+                                               { 200 => 1 })).to eq("Thank you for your purchase of #{selected_item.name}. Please collect your item and change: 1 x 50c")
           end
 
           it 'properly updates the machine balance with correct coin denominations' do
@@ -110,7 +110,7 @@ describe VendingMachine do
             coke_item = vending_machine.items.find { |item| item.name == 'Coke' }
 
             # First purchase should succeed
-            expect(vending_machine.purchase_item('Coke', { 200 => 1 })).to eq("Thank you for your purchase of Coke. Please collect your item and change: 50")
+            expect(vending_machine.purchase_item('Coke', { 200 => 1 })).to eq("Thank you for your purchase of Coke. Please collect your item and change: 1 x 50c")
             expect(coke_item.quantity).to eq(0)
 
             # Second purchase should fail
@@ -182,6 +182,81 @@ describe VendingMachine do
     it 'old purchase_item API still works' do
       result = @machine.purchase_item('Coke', {200 => 1})
       expect(result).to include('Thank you for your purchase')
+    end
+
+    it 'maintains session after invalid denomination entry and allows correction' do
+      @machine.start_purchase('Coke')
+
+      # First payment with invalid denomination
+      result1 = @machine.insert_payment({25 => 1})
+      expect(result1).to eq('Invalid coin denomination in payment: [25]')
+
+      # Session should still be active, try with valid denomination
+      result2 = @machine.insert_payment({100 => 1})
+      expect(result2).to include('Please insert 50 more cents')
+
+      # Complete the payment
+      result3 = @machine.insert_payment({50 => 1})
+      expect(result3).to include('Thank you for your purchase')
+    end
+
+    context 'consistency between session and direct purchase' do
+      it 'produces identical results for same payment scenario' do
+        # Test with session-based API
+        @machine.start_purchase('Coke')
+        session_result = @machine.insert_payment({200 => 1})
+
+        # Reset machine for direct purchase
+        @machine2 = VendingMachine.new(@items, @balance)
+        direct_result = @machine2.purchase_item('Coke', {200 => 1})
+
+        expect(session_result).to eq(direct_result)
+      end
+
+      it 'updates balance identically in both flows' do
+        # Session-based purchase
+        @machine.start_purchase('Coke')
+        @machine.insert_payment({200 => 1})
+        session_balance = @machine.balance.calculate_total_amount
+
+        # Direct purchase
+        @machine2 = VendingMachine.new(@items, @balance)
+        @machine2.purchase_item('Coke', {200 => 1})
+        direct_balance = @machine2.balance.calculate_total_amount
+
+        expect(session_balance).to eq(direct_balance)
+      end
+    end
+  end
+
+  describe 'CLI integration scenarios' do
+    it 'handles Euro pricing correctly' do
+      # Simulate CLI setup with Euro prices in cents
+      items = [
+        Item.new("Coke", 150, 5),      # €1.50 = 150 cents
+        Item.new("Chips", 100, 3),     # €1.00 = 100 cents
+        Item.new("Candy", 75, 8),      # €0.75 = 75 cents
+        Item.new("Water", 125, 2)      # €1.25 = 125 cents
+      ]
+      balance = Change.new({ 50 => 6, 10 => 10, 20 => 10, 100 => 2, 200 => 1, 5 => 10, 2 => 10, 1 => 2 })
+      machine = VendingMachine.new(items, balance)
+
+      # Test the exact scenario that was failing
+      result = machine.purchase_item("Chips", {200 => 1})
+      expect(result).to eq('Thank you for your purchase of Chips. Please collect your item and change: 1 x 100c')
+    end
+
+    it 'prevents incorrect pricing setup' do
+      # This should fail if someone tries to use dollar amounts instead of cents
+      items = [
+        Item.new("Chips", 1.00, 3),    # Wrong: should be 100 cents, not 1.00
+      ]
+      balance = Change.new({ 100 => 2, 200 => 1 })
+      machine = VendingMachine.new(items, balance)
+
+      # With 1.00 price, 200 cents payment should be rejected because machine can't make 199 cents change
+      result = machine.purchase_item("Chips", {200 => 1})
+      expect(result).to eq('Cannot provide change with available coins. Please use exact amount.')
     end
   end
 end
