@@ -62,14 +62,14 @@ class Change
 
   def coin_name_for_denomination(denomination)
     case denomination
-    when 1 then 'penny'
+    when 1 then '1-cent coin'
     when 2 then '2-cent coin'
-    when 5 then 'nickel'
-    when 10 then 'dime'
+    when 5 then '5-cent coin'
+    when 10 then '10-cent coin'
     when 20 then '20-cent coin'
-    when 50 then 'half-dollar'
-    when 100 then 'dollar coin'
-    when 200 then '2-dollar coin'
+    when 50 then '50-cent coin'
+    when 100 then '1 Euro coin'
+    when 200 then '2 Euro coin'
     else 'coin'
     end
   end

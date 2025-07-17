@@ -56,10 +56,10 @@ class VendingMachineCLI
 
   def setup_items
     items = [
-      Item.new("Coke", 1.50, 5),
-      Item.new("Chips", 1.00, 3),
-      Item.new("Candy", 0.75, 8),
-      Item.new("Water", 1.25, 2)
+      Item.new("Coke", 150, 5),      # €1.50 = 150 cents
+      Item.new("Chips", 100, 3),     # €1.00 = 100 cents
+      Item.new("Candy", 75, 8),      # €0.75 = 75 cents
+      Item.new("Water", 125, 2)      # €1.25 = 125 cents
     ]
     @vending_machine = VendingMachine.new(items, Change.new(INITIAL_BALANCE))
   end
@@ -90,7 +90,8 @@ class VendingMachineCLI
   def display_items
     puts "\n=== Available Items ==="
     @vending_machine.items.each_with_index do |item, index|
-      puts "#{index + 1}. #{item.name} - $#{item.price} (#{item.quantity} available)"
+      price_in_euros = item.price / 100.0
+      puts "#{index + 1}. #{item.name} - €#{price_in_euros} (#{item.quantity} available)"
     end
   end
 
@@ -145,7 +146,8 @@ class VendingMachineCLI
     end
 
     item = @vending_machine.items[item_index]
-    puts "Selected: #{item.name} - $#{item.price}"
+    price_in_euros = item.price / 100.0
+    puts "Selected: #{item.name} - €#{price_in_euros}"
     puts
     puts "Format: Enter payment as a hash of coin denominations in cents"
     puts "Example: {100 => 2, 25 => 1} means 2, 1 Euro coins(100 cents is 1 Euro) + 1 quarter = $2.25"
@@ -186,7 +188,8 @@ class VendingMachineCLI
     end
 
     item = @vending_machine.items[item_index]
-    puts "Selected: #{item.name} - $#{item.price}"
+    price_in_euros = item.price / 100.0
+    puts "Selected: #{item.name} - €#{price_in_euros}"
     puts
     puts "Starting purchase session..."
     result = @vending_machine.start_purchase(item.name)

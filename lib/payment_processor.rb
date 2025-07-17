@@ -23,79 +23,63 @@ class PaymentProcessor
   private
 
   def process_transaction(item, payment, total_payment_for_item)
-    change = process_change_transaction(item, payment, total_payment_for_item)
-
-    if change >= 0
-      complete_successful_transaction(item, change)
-    else
-      [specify_amount_pending(item, change), @balance]
-    end
-  end
-
-  def process_change_transaction(item, payment, total_payment_for_item)
-    item_price_in_cents = item.price  # Price is already in cents
+    item_price_in_cents = item.price
     change_in_cents = total_payment_for_item > item_price_in_cents ? total_payment_for_item - item_price_in_cents : 0
-    update_machine_balance(payment, change_in_cents)
-    change_in_cents
-  end
 
-  def complete_successful_transaction(item, change)
-    item.quantity -= 1
-    [confirm_payment(item, change), @balance]
-  end
-
-  def calculate_total_balance
-    @balance.calculate_total_amount
-  end
-
-  def confirm_payment(item, change)
-    if change > 0
-      "Thank you for your purchase of #{item.name}. Please collect your item and change: #{change}"
-    else
-      "Thank you for your purchase of #{item.name}. Please collect your item."
-    end
-  end
-
-  def specify_amount_pending(item, change)
-    pending_amount = change.abs
-    "You need to pay #{pending_amount} more cents to purchase #{item.name}"
-  end
-
-  def update_machine_balance(payment, change_in_cents)
-    # Add the payment coins to the machine's balance
+    # Add the payment coins to the machine's balance (simulate before confirming)
     new_balance = @balance.amount.dup
     payment.each do |denom, count|
       new_balance[denom] ||= 0
       new_balance[denom] += count
     end
 
-    # Subtract the change given to the user from the updated balance
-    new_balance = subtract_change_from_balance(new_balance, change_in_cents) if change_in_cents && change_in_cents > 0
+    # Try to make change
+    change_given, updated_balance = make_change(new_balance, change_in_cents)
 
-    @balance = Change.new(new_balance)
-  end
-
-  def subtract_change_from_balance(balance, change_amount)
-    # Calculate change using available denominations
-    remaining_change = change_amount
-    new_balance = balance.dup
-
-    # Sort denominations in descending order to give larger coins first
-    Change::ACCEPTABLE_COINS.sort.reverse.each do |denomination|
-      next if remaining_change <= 0
-
-      available_coins = new_balance[denomination] || 0
-      coins_to_give = [available_coins, remaining_change / denomination].min
-
-      if coins_to_give > 0
-        new_balance[denomination] = available_coins - coins_to_give
-        remaining_change -= coins_to_give * denomination
-      end
+    if change_given.nil? && change_in_cents > 0
+      # Cannot make change
+      return ["Cannot provide change with available coins. Please use exact amount.", @balance]
     end
 
-    # Remove denominations with zero quantity
-    new_balance.reject! { |_, quantity| quantity <= 0 }
+    # Update the machine's balance
+    @balance = Change.new(updated_balance)
+    item.quantity -= 1
+    [confirm_payment(item, change_given), @balance]
+  end
 
-    new_balance
+  def confirm_payment(item, change_given)
+    if change_given && !change_given.empty?
+      change_str = change_given.sort_by { |k, _| -k }
+        .select { |_, count| count > 0 }
+        .map { |denom, count| "#{count.to_i} x #{denom}c" }.join(", ")
+      "Thank you for your purchase of #{item.name}. Please collect your item and change: #{change_str}"
+    else
+      "Thank you for your purchase of #{item.name}. Please collect your item."
+    end
+  end
+
+  # Returns [change_given_hash, new_balance_hash] or [nil, original_balance] if cannot make change
+  def make_change(balance, change_amount)
+    return [{}, balance] if change_amount == 0
+    remaining = change_amount
+    change_given = {}
+    new_balance = balance.dup
+    Change::ACCEPTABLE_COINS.sort.reverse.each do |denomination|
+      next if remaining <= 0
+      available = new_balance[denomination] || 0
+      num = [available, remaining.div(denomination)].min
+      if num > 0
+        change_given[denomination] = num
+        new_balance[denomination] -= num
+        remaining -= num * denomination
+      end
+    end
+    if remaining == 0
+      # Remove zero-quantity coins
+      new_balance.reject! { |_, qty| qty <= 0 }
+      [change_given, new_balance]
+    else
+      [nil, balance] # Cannot make change
+    end
   end
 end

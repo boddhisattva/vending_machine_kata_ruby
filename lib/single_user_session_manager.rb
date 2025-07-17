@@ -1,5 +1,6 @@
 require 'securerandom'
 require_relative 'payment_session'
+require_relative 'change'
 
 class SingleUserSessionManager < SessionManager
   def initialize
@@ -17,6 +18,10 @@ class SingleUserSessionManager < SessionManager
 
   def add_payment(session_id, payment)
     return { success: false, message: "No active session" } unless @current_session&.id == session_id
+
+    # Validate coin denominations before adding to session
+    validation_result = validate_payment_denominations(payment)
+    return validation_result unless validation_result.nil?
 
     remaining = @current_session.add_payment(payment)
 
@@ -66,5 +71,20 @@ class SingleUserSessionManager < SessionManager
 
   def current_session
     @current_session
+  end
+
+  private
+
+  def validate_payment_denominations(payment)
+    invalid_denominations = payment.keys - Change::ACCEPTABLE_COINS
+    if invalid_denominations.any?
+      {
+        success: false,
+        message: "Invalid coin denomination in payment: #{invalid_denominations}",
+        completed: false
+      }
+    else
+      nil
+    end
   end
 end
