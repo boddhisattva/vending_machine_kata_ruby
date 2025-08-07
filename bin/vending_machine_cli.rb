@@ -127,97 +127,181 @@ class VendingMachineCLI
 
   def purchase_with_session
     puts "\n=== Purchase Item with Session ==="
+
+    item = let_user_select_item
+    return unless item
+
+    show_selected_item_details(item)
+    start_purchase_session_for(item)
+    collect_payment_until_complete
+  end
+
+  def let_user_select_item
     display_items
+    item_number = ask_for_item_number
+    return nil unless item_number
+
+    find_item_by_number(item_number)
+  end
+
+  def ask_for_item_number
     print 'Enter item number to purchase: '
-
     input = safe_gets
-    return if input.nil?
+    return nil if input.nil?
 
-    item_index = input.to_i - 1
+    input.to_i
+  end
 
-    if item_index < 0 || item_index >= @vending_machine.items.length
+  def find_item_by_number(item_number)
+    item_index = item_number - 1
+
+    if item_index_is_invalid?(item_index)
       puts 'Invalid item number.'
-      return
+      return nil
     end
 
-    item = @vending_machine.items[item_index]
+    @vending_machine.items[item_index]
+  end
+
+  def item_index_is_invalid?(index)
+    index < 0 || index >= @vending_machine.items.length
+  end
+
+  def show_selected_item_details(item)
     price_in_euros = item.price / 100.0
     puts "Selected: #{item.name} - €#{price_in_euros}"
     puts
+  end
+
+  def start_purchase_session_for(item)
     puts 'Starting purchase session...'
     result = @vending_machine.start_purchase(item.name)
     puts result
+  end
 
+  def collect_payment_until_complete
     loop do
-      puts
-      puts 'Format: Enter payment as a hash of coin denominations in cents'
-      puts 'Example: {100 => 2, 25 => 1} means 2, 1 Euro coins(100 cents is 1 Euro) + 1 quarter = $2.25'
-      puts 'Available denominations: 1, 2, 5, 10, 20, 50, 100, 200 cents'
-      print "Enter payment hash (or 'cancel' to cancel): "
+      payment_input = request_payment_from_user
+      return if payment_input.nil?
 
-      input = safe_gets
-      return if input.nil?
-
-      if input.downcase == 'cancel'
-        puts @vending_machine.cancel_purchase
+      if user_wants_to_cancel?(payment_input)
+        cancel_current_purchase
         break
       end
 
-      begin
-        payment = parse_payment_hash(input)
-        next if payment.nil?
-
-        result = @vending_machine.insert_payment(payment)
-        puts result
-
-        break if result.include?('Payment complete') || result.include?('Thank you for your purchase')
-      rescue StandardError => e
-        puts "Error parsing input: #{e.message}"
-        puts 'Please use the format: {100 => 2, 25 => 1}'
-      end
+      break if process_payment_input(payment_input)
     end
   end
 
-  def parse_payment_hash(input)
-    # Remove whitespace and validate basic hash format
-    clean_input = input.strip
+  def request_payment_from_user
+    puts
+    show_payment_instructions
+    print "Enter payment hash (or 'cancel' to cancel): "
+    safe_gets
+  end
 
+  def show_payment_instructions
+    puts 'Format: Enter payment as a hash of coin denominations in cents'
+    puts 'Example: {100 => 2, 25 => 1} means 2, 1 Euro coins(100 cents is 1 Euro) + 1 quarter = $2.25'
+    puts 'Available denominations: 1, 2, 5, 10, 20, 50, 100, 200 cents'
+  end
+
+  def user_wants_to_cancel?(input)
+    input.downcase == 'cancel'
+  end
+
+  def cancel_current_purchase
+    puts @vending_machine.cancel_purchase
+  end
+
+  def process_payment_input(input)
+    payment = parse_payment_hash(input)
+    return false if payment.nil?
+
+    insert_payment_and_check_if_complete(payment)
+  rescue StandardError => e
+    show_payment_error(e)
+    false
+  end
+
+  def insert_payment_and_check_if_complete(payment)
+    result = @vending_machine.insert_payment(payment)
+    puts result
+    payment_is_complete?(result)
+  end
+
+  def payment_is_complete?(result)
+    result.include?('Payment complete') || result.include?('Thank you for your purchase')
+  end
+
+  def show_payment_error(error)
+    puts "Error parsing input: #{error.message}"
+    puts 'Please use the format: {100 => 2, 25 => 1}'
+  end
+
+  def parse_payment_hash(input)
     return nil unless input_looks_like_hash?(input)
 
-    # Extract content between braces
-    content = clean_input[/{(.*)}/m, 1]
-    return {} if content.nil? || content.strip.empty?
+    content = extract_hash_content(input)
+    return {} if content_is_empty?(content)
 
+    build_payment_from_content(content)
+  rescue StandardError => e
+    show_parsing_error(e)
+    nil
+  end
+
+  def extract_hash_content(input)
+    input.strip[/{(.*)}/m, 1]
+  end
+
+  def content_is_empty?(content)
+    content.nil? || content.strip.empty?
+  end
+
+  def build_payment_from_content(content)
     payment = {}
+    coin_entries = split_into_coin_entries(content)
 
-    # Split by commas and parse each key-value pair
-    pairs = content.split(',').map(&:strip)
+    coin_entries.each do |entry|
+      denomination, count = parse_single_coin_entry(entry)
+      return nil unless denomination && count
 
-    pairs.each do |pair|
-      # Match pattern like "100 => 2" or "100=>2"
-      match = pair.match(/\A\s*(\d+)\s*=>\s*(\d+)\s*\z/)
-
-      unless match
-        puts "Invalid pair format: '#{pair}'. Expected format: 'denomination => count'"
-        return nil
-      end
-
-      denomination = match[1].to_i
-      count = match[2].to_i
-
-      if count <= 0
-        puts "Invalid count: #{count}. Count must be positive."
-        return nil
-      end
+      return nil unless count_is_valid?(count)
 
       payment[denomination] = count
     end
 
     payment
-  rescue StandardError => e
-    puts "Error parsing payment hash: #{e.message}"
+  end
+
+  def split_into_coin_entries(content)
+    content.split(',').map(&:strip)
+  end
+
+  def parse_single_coin_entry(entry)
+    match = entry.match(/\A\s*(\d+)\s*=>\s*(\d+)\s*\z/)
+
+    unless match
+      puts "Invalid pair format: '#{entry}'. Expected format: 'denomination => count'"
+      return [nil, nil]
+    end
+
+    [match[1].to_i, match[2].to_i]
+  end
+
+  def count_is_valid?(count)
+    if count <= 0
+      puts "Invalid count: #{count}. Count must be positive."
+      return false
+    end
+
+    true
+  end
+
+  def show_parsing_error(error)
+    puts "Error parsing payment hash: #{error.message}"
     puts 'Please use the format: {100 => 2, 25 => 1}'
-    nil
   end
 
   def input_looks_like_hash?(input)
