@@ -8,7 +8,7 @@ Design a vending machine that works as follows:
 
 * It should also return change if too much money is provided, or ask for more money if insufficient funds have been inserted.
 
-* The machine should take an initial load of products and change. The change will be of denominations 1p, 2p, 5p, 10p, 20p, 50p, £1, £2.
+* The machine should take an initial load of products and change. The change will be of denominations 1c, 2c, 5c, 10c, 20c, 50c, €1, €2.
 
 * There should be a way of reloading either products or change at a later point.
 
