@@ -17,7 +17,7 @@ class SingleUserSessionManager < SessionManager
   end
 
   def add_payment(session_id, payment)
-    return { success: false, message: "No active session" } unless @current_session&.id == session_id
+    return { success: false, message: 'No active session' } unless @current_session&.id == session_id
 
     # Validate coin denominations before adding to session
     validation_result = validate_payment_denominations(payment)
@@ -28,7 +28,7 @@ class SingleUserSessionManager < SessionManager
     if @current_session.sufficient_funds?
       {
         success: true,
-        message: "Payment complete",
+        message: 'Payment complete',
         completed: true,
         remaining: 0
       }
@@ -43,48 +43,44 @@ class SingleUserSessionManager < SessionManager
   end
 
   def complete_session(session_id)
-    return { success: false, message: "No active session" } unless @current_session&.id == session_id
-    return { success: false, message: "Insufficient funds" } unless @current_session.sufficient_funds?
+    return { success: false, message: 'No active session' } unless @current_session&.id == session_id
+    return { success: false, message: 'Insufficient funds' } unless @current_session.sufficient_funds?
 
     session = @current_session
     @current_session = nil  # Clear the session
 
     {
       success: true,
-      message: "Transaction completed successfully",
+      message: 'Transaction completed successfully',
       session: session
     }
   end
 
   def cancel_session(session_id)
-    return { success: false, message: "No active session" } unless @current_session&.id == session_id
+    return { success: false, message: 'No active session' } unless @current_session&.id == session_id
 
     partial_payment = @current_session.accumulated_payment.dup
     @current_session = nil  # Clear the session
 
     {
       success: true,
-      message: "Session cancelled. Returning partial payment.",
+      message: 'Session cancelled. Returning partial payment.',
       partial_payment: partial_payment
     }
   end
 
-  def current_session
-    @current_session
-  end
+  attr_reader :current_session
 
   private
 
   def validate_payment_denominations(payment)
     invalid_denominations = payment.keys - Change::ACCEPTABLE_COINS
-    if invalid_denominations.any?
-      {
-        success: false,
-        message: "Invalid coin denomination in payment: #{invalid_denominations}",
-        completed: false
-      }
-    else
-      nil
-    end
+    return unless invalid_denominations.any?
+
+    {
+      success: false,
+      message: "Invalid coin denomination in payment: #{invalid_denominations}",
+      completed: false
+    }
   end
 end

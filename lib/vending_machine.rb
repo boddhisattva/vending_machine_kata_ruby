@@ -2,17 +2,20 @@ require 'money'
 require_relative 'payment_processor'
 require_relative 'session_manager'
 require_relative 'single_user_session_manager'
+require_relative 'reload_manager'
 
 class VendingMachine
   attr_reader :items, :payment_processor
   attr_accessor :balance
 
   def initialize(items, balance, payment_processor = PaymentProcessor.new,
-                 session_manager = SingleUserSessionManager.new)
+                 session_manager = SingleUserSessionManager.new,
+                 reload_manager = ReloadManager.new)
     @items = items
     @balance = balance
     @payment_processor = payment_processor
     @session_manager = session_manager
+    @reload_manager = reload_manager
     @current_session_id = nil
   end
 
@@ -70,59 +73,21 @@ class VendingMachine
   end
 
   def available_change
-    @balance.respond_to?(:to_dollars) ? @balance.to_dollars : 0
+    @balance.respond_to?(:calculate_total_amount) ? @balance.calculate_total_amount : 0
   end
 
   def balance_in_english
     @balance.respond_to?(:to_english) ? @balance.to_english : 'No balance information'
   end
 
-  # Reload items - adds stock to existing items or adds new items
-  def reload_item(item_name, quantity_to_add, price = nil)
-    unless quantity_to_add.is_a?(Integer) && quantity_to_add > 0
-      return 'Invalid quantity. Please provide a positive number.'
-    end
-
-    existing_item = items.find { |item| item.name == item_name }
-
-    if existing_item
-      # Add to existing item's quantity
-      existing_item.quantity += quantity_to_add
-      "Successfully added #{quantity_to_add} units to #{item_name}. New quantity: #{existing_item.quantity}"
-    else
-      # Add new item if price is provided
-      return 'Price required for new item' unless price
-      return 'Invalid price. Please provide a positive number.' unless price.is_a?(Integer) && price > 0
-
-      new_item = Item.new(item_name, price, quantity_to_add)
-      @items << new_item
-      "Successfully added new item: #{item_name} - €#{format('%.2f', price / 100.0)} (#{quantity_to_add} units)"
-    end
+  def reload_change(coins_to_add)
+    message, @balance = @reload_manager.reload_change(@balance, coins_to_add)
+    message
   end
 
-  # Reload change - adds coins to the machine's balance
-  def reload_change(coins_to_add)
-    return 'Invalid input. Please provide a hash of coins.' unless coins_to_add.is_a?(Hash)
-    return 'Invalid input. All quantities must be positive.' unless coins_to_add.values.all? do |v|
-      v.is_a?(Integer) && v > 0
-    end
-
-    # Validate denominations
-    invalid_denoms = coins_to_add.keys - Change::ACCEPTABLE_COINS
-    return "Invalid coin denominations: #{invalid_denoms}" if invalid_denoms.any?
-
-    # Merge new coins with existing balance
-    new_balance_hash = @balance.amount.dup
-    coins_to_add.each do |denomination, count|
-      new_balance_hash[denomination] ||= 0
-      new_balance_hash[denomination] += count
-    end
-
-    # Create new Change object to ensure validation
-    @balance = Change.new(new_balance_hash)
-
-    added_change = Change.new(coins_to_add)
-    "Successfully added coins: #{added_change.to_english}. Total balance: €#{'%.2f' % @balance.to_dollars}"
+  def reload_item(item_name, quantity, price = nil)
+    message, @items = @reload_manager.reload_item(@items, item_name, quantity, price)
+    message
   end
 
   def display_stock

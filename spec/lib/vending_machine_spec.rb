@@ -24,6 +24,293 @@ describe VendingMachine do
     end
   end
 
+  describe '#reload_item' do
+    let(:vending_machine) { VendingMachine.new(items, balance) }
+
+    context 'when reloading an existing item' do
+      it 'increases the quantity and returns success message' do
+        initial_quantity = vending_machine.items.first.quantity
+        message = vending_machine.reload_item('Coke', 5)
+
+        expect(message).to eq('Successfully added 5 units to Coke. New quantity: 6')
+        expect(vending_machine.items.first.quantity).to eq(initial_quantity + 5)
+      end
+
+      it 'ignores price parameter for existing items' do
+        message = vending_machine.reload_item('Coke', 3, 999)
+
+        expect(message).to eq('Successfully added 3 units to Coke. New quantity: 4')
+        expect(vending_machine.items.first.price).to eq(150) # Price unchanged
+      end
+
+      it 'maintains reference to the same items array' do
+        original_items_object_id = vending_machine.items.object_id
+        vending_machine.reload_item('Coke', 5)
+
+        expect(vending_machine.items.object_id).to eq(original_items_object_id)
+      end
+    end
+
+    context 'when adding a new item' do
+      it 'adds the item with correct attributes and returns success message' do
+        message = vending_machine.reload_item('Water', 10, 125)
+
+        expect(message).to eq('Successfully added new item: Water - €1.25 (10 units)')
+
+        water = vending_machine.items.find { |item| item.name == 'Water' }
+        expect(water).not_to be_nil
+        expect(water.price).to eq(125)
+        expect(water.quantity).to eq(10)
+      end
+
+      it 'increases the items collection size' do
+        initial_size = vending_machine.items.size
+        vending_machine.reload_item('Water', 5, 100)
+
+        expect(vending_machine.items.size).to eq(initial_size + 1)
+      end
+    end
+
+    context 'when validation fails' do
+      it 'returns error for zero quantity' do
+        initial_quantity = vending_machine.items.first.quantity
+        message = vending_machine.reload_item('Coke', 0)
+
+        expect(message).to eq('Invalid quantity. Please provide a positive number.')
+        expect(vending_machine.items.first.quantity).to eq(initial_quantity)
+      end
+
+      it 'returns error for negative quantity' do
+        initial_quantity = vending_machine.items.first.quantity
+        message = vending_machine.reload_item('Coke', -5)
+
+        expect(message).to eq('Invalid quantity. Please provide a positive number.')
+        expect(vending_machine.items.first.quantity).to eq(initial_quantity)
+      end
+
+      it 'returns error when adding new item without price' do
+        initial_size = vending_machine.items.size
+        message = vending_machine.reload_item('Water', 5)
+
+        expect(message).to eq('Price required for new item')
+        expect(vending_machine.items.size).to eq(initial_size)
+      end
+
+      it 'returns error when adding new item with nil price' do
+        message = vending_machine.reload_item('Water', 5, nil)
+
+        expect(message).to eq('Price required for new item')
+      end
+
+      it 'returns error for invalid price (zero)' do
+        message = vending_machine.reload_item('Water', 5, 0)
+
+        expect(message).to eq('Invalid price. Price must be positive.')
+      end
+
+      it 'returns error for negative price' do
+        message = vending_machine.reload_item('Water', 5, -100)
+
+        expect(message).to eq('Invalid price. Price must be positive.')
+      end
+    end
+
+    context 'edge cases' do
+      it 'handles empty item name gracefully' do
+        message = vending_machine.reload_item('', 5, 100)
+
+        expect(message).to eq('Invalid item name')
+      end
+
+      it 'handles nil item name' do
+        message = vending_machine.reload_item(nil, 5, 100)
+
+        expect(message).to eq('Invalid item name')
+      end
+
+      it 'handles very large quantities' do
+        message = vending_machine.reload_item('Coke', 1_000_000)
+
+        expect(message).to eq('Successfully added 1000000 units to Coke. New quantity: 1000001')
+        expect(vending_machine.items.first.quantity).to eq(1_000_001)
+      end
+    end
+
+    context 'integration with ReloadManager' do
+      it 'delegates to ReloadManager for processing' do
+        reload_manager = instance_double('ReloadManager')
+        allow(reload_manager).to receive(:reload_item).and_return(['Success message', items])
+
+        custom_machine = VendingMachine.new(items, balance, PaymentProcessor.new,
+                                            SingleUserSessionManager.new, reload_manager)
+
+        expect(reload_manager).to receive(:reload_item).with(items, 'Coke', 5, nil)
+        custom_machine.reload_item('Coke', 5)
+      end
+    end
+  end
+
+  describe '#display_stock' do
+    let(:vending_machine) { VendingMachine.new(items, balance) }
+
+    context 'when items are available' do
+      it 'displays all items with correct formatting' do
+        result = vending_machine.display_stock
+
+        expect(result).to include('Coke: 1 units @ €1.50')
+        expect(result).to include('Pepsi: 1 units @ €1.75')
+      end
+
+      it 'formats prices correctly from cents to euros' do
+        test_items = [
+          Item.new('Candy', 75, 10),   # €0.75
+          Item.new('Chips', 100, 5),   # €1.00
+          Item.new('Soda', 225, 3)     # €2.25
+        ]
+        machine = VendingMachine.new(test_items, balance)
+
+        result = machine.display_stock
+
+        expect(result).to include('Candy: 10 units @ €0.75')
+        expect(result).to include('Chips: 5 units @ €1.00')
+        expect(result).to include('Soda: 3 units @ €2.25')
+      end
+
+      it 'returns multiline string with one item per line' do
+        result = vending_machine.display_stock
+        lines = result.split("\n")
+
+        expect(lines.size).to eq(2) # Two items
+        expect(lines[0]).to match(/^Coke:/)
+        expect(lines[1]).to match(/^Pepsi:/)
+      end
+
+      it 'displays items with zero quantity' do
+        zero_quantity_items = [
+          Item.new('OutOfStock', 150, 0),
+          Item.new('Available', 100, 5)
+        ]
+        machine = VendingMachine.new(zero_quantity_items, balance)
+
+        result = machine.display_stock
+
+        expect(result).to include('OutOfStock: 0 units @ €1.50')
+        expect(result).to include('Available: 5 units @ €1.00')
+      end
+    end
+
+    context 'when no items are available' do
+      it 'returns appropriate message for empty items array' do
+        empty_machine = VendingMachine.new([], balance)
+
+        result = empty_machine.display_stock
+
+        expect(result).to eq('No items available')
+      end
+    end
+
+    context 'formatting edge cases' do
+      it 'handles single digit cent amounts correctly' do
+        test_items = [Item.new('Cheap', 5, 1)] # €0.05
+        machine = VendingMachine.new(test_items, balance)
+
+        result = machine.display_stock
+
+        expect(result).to eq('Cheap: 1 units @ €0.05')
+      end
+
+      it 'handles large prices correctly' do
+        test_items = [Item.new('Expensive', 9999, 1)] # €99.99
+        machine = VendingMachine.new(test_items, balance)
+
+        result = machine.display_stock
+
+        expect(result).to eq('Expensive: 1 units @ €99.99')
+      end
+
+      it 'maintains consistent decimal places' do
+        test_items = [
+          Item.new('Item1', 100, 1),  # €1.00
+          Item.new('Item2', 150, 1),  # €1.50
+          Item.new('Item3', 5, 1)     # €0.05
+        ]
+        machine = VendingMachine.new(test_items, balance)
+
+        result = machine.display_stock
+        lines = result.split("\n")
+
+        # All prices should have 2 decimal places
+        lines.each do |line|
+          expect(line).to match(/€\d+\.\d{2}$/)
+        end
+      end
+    end
+
+    context 'after reload operations' do
+      it 'reflects updated quantities after reload' do
+        vending_machine.reload_item('Coke', 5)
+
+        result = vending_machine.display_stock
+
+        expect(result).to include('Coke: 6 units @ €1.50')
+      end
+
+      it 'includes newly added items' do
+        vending_machine.reload_item('Water', 10, 125)
+
+        result = vending_machine.display_stock
+
+        expect(result).to include('Water: 10 units @ €1.25')
+        expect(result.split("\n").size).to eq(3) # Original 2 + new item
+      end
+    end
+  end
+
+  describe '#reload_change' do
+    let(:vending_machine) { VendingMachine.new(items, balance) }
+
+    context 'when adding valid coins' do
+      it 'adds coins to the balance and returns success message' do
+        coins_to_add = { 100 => 5, 50 => 10 }
+
+        initial_balance = vending_machine.balance.calculate_total_amount
+        message = vending_machine.reload_change(coins_to_add)
+
+        expect(message).to include('Successfully added coins')
+        expect(vending_machine.balance.calculate_total_amount).to eq(initial_balance + 1000)
+      end
+
+      it 'updates the specific coin counts in balance' do
+        initial_100_count = vending_machine.balance.amount[100]
+        initial_50_count = vending_machine.balance.amount[50]
+
+        coins_to_add = { 100 => 3, 50 => 2 }
+        vending_machine.reload_change(coins_to_add)
+
+        expect(vending_machine.balance.amount[100]).to eq(initial_100_count + 3)
+        expect(vending_machine.balance.amount[50]).to eq(initial_50_count + 2)
+      end
+    end
+
+    context 'when adding coins with invalid denominations' do
+      it 'returns an error message' do
+        coins_to_add = { 999 => 1 }
+        message = vending_machine.reload_change(coins_to_add)
+
+        expect(message).to include('Invalid coin denomination')
+      end
+    end
+
+    context 'when adding coins with negative quantities' do
+      it 'returns an error message' do
+        coins_to_add = { 100 => -5 }
+        message = vending_machine.reload_change(coins_to_add)
+
+        expect(message).to include('must be positive')
+      end
+    end
+  end
+
   describe 'purchasing an item' do
     context 'given an item name & balance' do
       let(:selected_item) { Item.new('Coke', 150, 1) }
@@ -162,7 +449,7 @@ describe VendingMachine do
     it 'handles full happy path: start, insert, complete' do
       start = @machine.start_purchase('Coke')
       expect(start).to include('Please insert 150 cents')
-      session_id = @machine.instance_variable_get(:@current_session_id)
+      @machine.instance_variable_get(:@current_session_id)
       pay1 = @machine.insert_payment({ 100 => 1 })
       expect(pay1).to include('Please insert 50 more cents')
       pay2 = @machine.insert_payment({ 50 => 1 })
@@ -301,15 +588,16 @@ describe VendingMachine do
       result = @machine.reload_change({ 100 => 5, 50 => 3 })
 
       expect(result).to include('Successfully added coins')
-      expect(@machine.available_change).to eq(initial_total + 6.50)
+      expect(@machine.available_change).to eq(initial_total + 650)
       expect(@machine.balance.amount[100]).to eq(5)
+      expect(@machine.balance.amount[10]).to eq(3)
       expect(@machine.balance.amount[50]).to eq(5) # 2 + 3
     end
 
     it 'returns error for invalid denominations' do
       result = @machine.reload_change({ 25 => 5 })
       expect(result).to eq('Invalid coin denominations: [25]')
-      expect(@machine.available_change).to eq(1.30) # Unchanged
+      expect(@machine.available_change).to eq(130) # Unchanged
     end
 
     it 'returns error for non-hash input' do

@@ -7,7 +7,7 @@ class PaymentSession
     @id = generate_session_id
     @item = item
     @accumulated_payment = {}
-    @total_needed = item.price  # Price is already in cents
+    @total_needed = item.price # Price is already in cents
   end
 
   def add_payment(payment)
@@ -36,7 +36,7 @@ class PaymentSession
     [total_paid - @total_needed, 0].max
   end
 
-    private
+  private
 
   def generate_session_id
     SecureRandom.uuid
