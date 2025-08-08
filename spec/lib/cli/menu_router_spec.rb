@@ -42,30 +42,23 @@ RSpec.describe MenuRouter do
     end
 
     context 'when choice is "4"' do
-      it 'shows change return information' do
-        expect(display).to receive(:show_change_return_info)
+      it 'shows machine status' do
+        expect(display).to receive(:show_machine_status)
         router.route('4')
       end
     end
 
     context 'when choice is "5"' do
-      it 'shows machine status' do
-        expect(display).to receive(:show_machine_status)
+      it 'reloads items for machine' do
+        expect(item_reloader).to receive(:reload_items_for_machine)
         router.route('5')
       end
     end
 
     context 'when choice is "6"' do
-      it 'reloads items for machine' do
-        expect(item_reloader).to receive(:reload_items_for_machine)
-        router.route('6')
-      end
-    end
-
-    context 'when choice is "7"' do
       it 'reloads change for machine' do
         expect(change_reloader).to receive(:reload_change_for_machine)
-        router.route('7')
+        router.route('6')
       end
     end
 
@@ -81,7 +74,7 @@ RSpec.describe MenuRouter do
     end
 
     context 'when choice is invalid' do
-      ['0', '8', '9', 'invalid', 'abc', ''].each do |invalid_choice|
+      ['0', '7', '8', '9', 'invalid', 'abc', ''].each do |invalid_choice|
         context "when choice is #{invalid_choice.inspect}" do
           it 'shows invalid choice message' do
             expect(display).to receive(:show_invalid_choice_message)
@@ -102,7 +95,7 @@ RSpec.describe MenuRouter do
     end
 
     context 'when input is not a quit command' do
-      ['1', '2', '3', '4', '5', '6', '7', 'Q', 'QUIT', 'EXIT', 'invalid', ''].each do |non_quit_command|
+      ['1', '2', '3', '4', '5', '6', 'Q', 'QUIT', 'EXIT', 'invalid', ''].each do |non_quit_command|
         it "returns false for #{non_quit_command.inspect}" do
           expect(router.quit_command?(non_quit_command)).to be false
         end

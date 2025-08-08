@@ -15,10 +15,9 @@ class VendingMachineDisplay
     puts '1. Display available items'
     puts '2. Purchase item with session'
     puts '3. Display current balance'
-    puts '4. Return change'
-    puts '5. Display machine status'
-    puts '6. Reload items'
-    puts '7. Reload change'
+    puts '4. Display machine status'
+    puts '5. Reload items'
+    puts '6. Reload change'
     puts 'q. Quit'
     print 'Enter your choice: '
   end

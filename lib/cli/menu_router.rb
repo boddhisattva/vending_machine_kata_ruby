@@ -17,12 +17,10 @@ class MenuRouter
     when '3'
       @display.show_current_balance
     when '4'
-      @display.show_change_return_info
-    when '5'
       @display.show_machine_status
-    when '6'
+    when '5'
       @item_reloader.reload_items_for_machine
-    when '7'
+    when '6'
       @change_reloader.reload_change_for_machine
     when 'q', 'quit', 'exit'
       @display.show_goodbye_message

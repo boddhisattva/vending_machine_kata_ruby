@@ -25,10 +25,9 @@ RSpec.describe VendingMachineDisplay do
         '1. Display available items',
         '2. Purchase item with session',
         '3. Display current balance',
-        '4. Return change',
-        '5. Display machine status',
-        '6. Reload items',
-        '7. Reload change',
+        '4. Display machine status',
+        '5. Reload items',
+        '6. Reload change',
         'q. Quit',
         'Enter your choice: '
       ].join("\n")
