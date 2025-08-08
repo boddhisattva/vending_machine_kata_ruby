@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'money'
 require_relative 'payment_processor'
 require_relative 'session_manager'
 require_relative 'single_user_session_manager'
@@ -60,10 +59,10 @@ class VendingMachine
         session.item.price,
         @balance
       )
-      
+
       if validation_error
         # Auto-cancel and refund
-        auto_cancel_with_refund("Cannot provide change.")
+        auto_cancel_with_refund('Cannot provide change.')
       else
         # Proceed with normal completion
         complete_current_purchase
@@ -143,11 +142,11 @@ class VendingMachine
     # Get the payment before cancelling
     session = @session_manager.current_session
     payment = session.accumulated_payment
-    
+
     # Cancel the session
     result = @session_manager.cancel_session(@current_session_id)
     @current_session_id = nil
-    
+
     # Format refund message
     if payment && !payment.empty?
       change_to_return = Change.new(payment)
@@ -160,7 +159,7 @@ class VendingMachine
 
   def complete_current_purchase
     return 'No active purchase session' unless @current_session_id
-    
+
     # Change validation now happens in insert_payment, so just complete
     complete_purchase
   end

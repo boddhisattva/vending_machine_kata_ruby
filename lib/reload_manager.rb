@@ -38,7 +38,7 @@ class ReloadManager
     new_balance = Change.new(new_balance_hash)
 
     added_change = Change.new(coins_to_add)
-    message = "Successfully added coins: #{added_change.to_english}. Total balance: €#{'%.2f' % new_balance.to_dollars}"
+    message = "Successfully added coins: #{added_change.to_english}. Total balance: €#{'%.2f' % new_balance.to_euros}"
 
     [message, new_balance]
   end

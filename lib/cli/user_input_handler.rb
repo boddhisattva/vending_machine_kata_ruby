@@ -19,11 +19,6 @@ class UserInputHandler
     safe_gets
   end
 
-  def request_any_key
-    print 'Press Enter to continue...'
-    safe_gets
-  end
-
   def safe_gets
     input = $stdin.gets
     return nil if input.nil?
