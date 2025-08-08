@@ -20,13 +20,4 @@ RSpec.describe CurrencyFormatter do
       expect(formatter.format_item_price(item)).to eq('€1.50')
     end
   end
-
-  describe '#cents_to_euros' do
-    it 'converts cents to euros as decimal' do
-      expect(formatter.cents_to_euros(150)).to eq(1.5)
-      expect(formatter.cents_to_euros(100)).to eq(1.0)
-      expect(formatter.cents_to_euros(75)).to eq(0.75)
-      expect(formatter.cents_to_euros(0)).to eq(0.0)
-    end
-  end
 end

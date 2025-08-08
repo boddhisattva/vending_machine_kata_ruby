@@ -7,8 +7,4 @@ class CurrencyFormatter
   def format_item_price(item)
     format_amount(item.price)
   end
-
-  def cents_to_euros(cents)
-    cents / 100.0
-  end
 end
