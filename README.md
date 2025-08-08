@@ -22,8 +22,7 @@ ruby bin/vending_machine_cli.rb
   - You can insert more coins until the price is met
   - Type `cancel` to cancel the session
 - **3. Display current balance**
-- **4. Return change**
-- **5. Display machine status**
+- **4. Display machine status**
 - **q. Quit**
 
 ### Example Payment Format
