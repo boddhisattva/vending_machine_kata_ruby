@@ -41,6 +41,10 @@ class VendingMachineCLI
         return_change
       when '5'
         display_machine_status
+      when '6'
+        reload_items
+      when '7'
+        reload_change_menu
       when 'q', 'quit', 'exit'
         puts 'Goodbye!'
         break
@@ -71,6 +75,8 @@ class VendingMachineCLI
     puts '3. Display current balance'
     puts '4. Return change'
     puts '5. Display machine status'
+    puts '6. Reload items'
+    puts '7. Reload change'
     puts 'q. Quit'
     print 'Enter your choice: '
   end
@@ -313,6 +319,67 @@ class VendingMachineCLI
     end
 
     true
+  end
+end
+
+def reload_items
+  puts "\n=== Reload Items ==="
+  puts 'Current stock:'
+  puts @vending_machine.display_stock
+  puts
+  print 'Enter item name: '
+
+  item_name = safe_gets
+  return if item_name.nil?
+
+  print 'Enter quantity to add: '
+  quantity_input = safe_gets
+  return if quantity_input.nil?
+
+  quantity = quantity_input.to_i
+
+  # Check if item exists
+  existing_item = @vending_machine.items.find { |item| item.name == item_name }
+
+  if existing_item.nil?
+    print 'New item detected. Enter price in cents (e.g., 150 for €1.50): '
+    price_input = safe_gets
+    return if price_input.nil?
+
+    price = price_input.to_i
+    result = @vending_machine.reload_item(item_name, quantity, price)
+  else
+    result = @vending_machine.reload_item(item_name, quantity)
+  end
+
+  puts result
+end
+
+def reload_change_menu
+  puts "\n=== Reload Change ==="
+  puts "Current balance: #{format_currency(@vending_machine.available_change)}"
+  puts "Coins: #{@vending_machine.balance_in_english}"
+  puts
+  puts 'Format: Enter coins as a hash of denominations in cents'
+  puts 'Example: {100 => 5, 50 => 10} means 5 €1 coins and 10 50-cent coins'
+  puts 'Available denominations: 1, 2, 5, 10, 20, 50, 100, 200 cents'
+  print 'Enter coins to add: '
+
+  input = safe_gets
+  return if input.nil?
+
+  begin
+    coins = eval(input)
+    unless coins.is_a?(Hash)
+      puts 'Invalid format. Please use a hash.'
+      return
+    end
+
+    result = @vending_machine.reload_change(coins)
+    puts result
+  rescue StandardError => e
+    puts "Error parsing input: #{e.message}"
+    puts 'Please use the format: {100 => 5, 50 => 10}'
   end
 end
 
