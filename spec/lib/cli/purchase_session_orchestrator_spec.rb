@@ -133,5 +133,22 @@ RSpec.describe PurchaseSessionOrchestrator do
 
       expect { orchestrator.execute_purchase_for(item) }.to output(expected_output).to_stdout
     end
+
+    it 'recognizes payment refunded completion message' do
+      allow(vending_machine).to receive(:start_purchase).with('Coke').and_return('Purchase started for Coke')
+      allow(display).to receive(:show_payment_instructions)
+      allow(input_handler).to receive(:get_payment_input).and_return('{100 => 2}')
+      allow(payment_parser).to receive(:parse).with('{100 => 2}').and_return({ 100 => 2 })
+      allow(vending_machine).to receive(:insert_payment).with({ 100 => 2 }).and_return('Payment refunded: €2.00. Cannot make exact change.')
+
+      expected_output = [
+        'Starting purchase session...',
+        'Purchase started for Coke',
+        '',
+        'Payment refunded: €2.00. Cannot make exact change.'
+      ].join("\n") + "\n"
+
+      expect { orchestrator.execute_purchase_for(item) }.to output(expected_output).to_stdout
+    end
   end
 end

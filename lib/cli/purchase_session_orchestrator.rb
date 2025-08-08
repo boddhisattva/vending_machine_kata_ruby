@@ -64,7 +64,9 @@ class PurchaseSessionOrchestrator
   end
 
   def payment_is_complete?(result)
-    result.include?('Payment complete') || result.include?('Thank you for your purchase')
+    result.include?('Payment complete') || 
+    result.include?('Thank you for your purchase') ||
+    result.include?('Payment refunded:')  # Auto-cancel with refund
   end
 
   def show_payment_error(error)
