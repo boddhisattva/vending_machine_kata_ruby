@@ -1,9 +1,13 @@
+# frozen_string_literal: true
+
 require 'money'
 require_relative 'payment_processor'
 require_relative 'session_manager'
 require_relative 'single_user_session_manager'
 require_relative 'reload_manager'
+require_relative 'change_validator'
 
+# Vending machine class to handle item purchases and change
 class VendingMachine
   attr_reader :items, :payment_processor
   attr_accessor :balance
@@ -16,6 +20,7 @@ class VendingMachine
     @payment_processor = payment_processor
     @session_manager = session_manager
     @reload_manager = reload_manager
+    @change_validator = ChangeValidator.new
     @current_session_id = nil
     @items_index = build_items_index
   end
@@ -70,7 +75,19 @@ class VendingMachine
 
     result = @session_manager.cancel_session(@current_session_id)
     @current_session_id = nil
-    result[:message]
+
+    # Format the cancellation message with coins returned
+    if result[:success] && result[:partial_payment]
+      change_to_return = Change.new(result[:partial_payment])
+      coins_returned = change_to_return.format_for_return
+      if coins_returned.empty?
+        'Purchase cancelled. No money to return.'
+      else
+        "Purchase cancelled. Money returned: #{coins_returned}"
+      end
+    else
+      result[:message]
+    end
   end
 
   def available_change
@@ -109,6 +126,22 @@ class VendingMachine
   end
 
   def complete_current_purchase
+    # First check if we can make change before completing the session
+    return 'No active purchase session' unless @current_session_id
+
+    # Get the session to check change-making ability
+    session = @session_manager.current_session
+
+    # Validate if we can make change
+    validation_error = @change_validator.validate_change_availability(
+      session.accumulated_payment,
+      session.item.price,
+      @balance
+    )
+
+    return validation_error if validation_error
+
+    # Now we can safely complete the purchase
     complete_purchase
   end
 

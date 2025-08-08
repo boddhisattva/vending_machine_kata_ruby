@@ -1,8 +1,10 @@
 require_relative 'payment_validator'
+require_relative 'change_calculator'
 
 class PaymentProcessor
-  def initialize(payment_validator = PaymentValidator.new)
+  def initialize(payment_validator = PaymentValidator.new, change_calculator = ChangeCalculator.new)
     @payment_validator = payment_validator
+    @change_calculator = change_calculator
   end
 
   def process_payment(item, payment, _items, balance)
@@ -36,11 +38,6 @@ class PaymentProcessor
     # Try to make change
     change_given, updated_balance = make_change(new_balance, change_in_cents)
 
-    if change_given.nil? && change_in_cents > 0
-      # Cannot make change
-      return ['Cannot provide change with available coins. Please use exact amount.', @balance]
-    end
-
     # Update the machine's balance
     @balance = Change.new(updated_balance)
     item.quantity -= 1
@@ -58,30 +55,8 @@ class PaymentProcessor
     end
   end
 
-  # Returns [change_given_hash, new_balance_hash] or [nil, original_balance] if cannot make change
+  # Delegates to ChangeCalculator for change-making logic
   def make_change(balance, change_amount)
-    return [{}, balance] if change_amount == 0
-
-    remaining = change_amount
-    change_given = {}
-    new_balance = balance.dup
-    Change::ACCEPTABLE_COINS.sort.reverse.each do |denomination|
-      next if remaining <= 0
-
-      available = new_balance[denomination] || 0
-      num = [available, remaining.div(denomination)].min
-      next unless num > 0
-
-      change_given[denomination] = num
-      new_balance[denomination] -= num
-      remaining -= num * denomination
-    end
-    if remaining == 0
-      # Remove zero-quantity coins
-      new_balance.reject! { |_, qty| qty <= 0 }
-      [change_given, new_balance]
-    else
-      [nil, balance] # Cannot make change
-    end
+    @change_calculator.make_change(balance, change_amount)
   end
 end

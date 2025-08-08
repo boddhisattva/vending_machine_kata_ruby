@@ -48,15 +48,6 @@ describe PaymentProcessor do
     end
 
     context 'change calculation edge cases' do
-      it 'handles when machine cannot make exact change' do
-        # Machine has no 1 Euro coins, only 2 Euro coins
-        balance = Change.new({ 200 => 1 })
-        item = Item.new('Chips', 100, 1) # 1 Euro item
-
-        result, = @processor.process_payment(item, { 200 => 1 }, [item], balance)
-        expect(result).to eq('Cannot provide change with available coins. Please use exact amount.')
-      end
-
       it 'gives optimal change using available denominations' do
         # Machine has 50c and 20c coins, but no 1 Euro coins
         balance = Change.new({ 50 => 2, 20 => 5, 5 => 10 })
