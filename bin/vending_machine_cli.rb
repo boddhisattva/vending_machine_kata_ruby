@@ -1,389 +1,87 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 require_relative '../lib/vending_machine'
 require_relative '../lib/item'
 require_relative '../lib/change'
+require_relative '../lib/cli/vending_machine_display'
+require_relative '../lib/cli/payment_input_parser'
+require_relative '../lib/cli/user_input_handler'
+require_relative '../lib/cli/item_selector'
+require_relative '../lib/cli/purchase_session_orchestrator'
+require_relative '../lib/cli/currency_formatter'
+require_relative '../lib/cli/vending_machine_initializer'
+require_relative '../lib/cli/item_reloader'
+require_relative '../lib/cli/change_reloader'
+require_relative '../lib/cli/menu_router'
+require_relative '../lib/cli/purchase_executor'
+require_relative '../lib/cli/application_runner'
 
 class VendingMachineCLI
-  INITIAL_BALANCE = {
-    50 => 6,
-    10 => 10,
-    20 => 10,
-    100 => 2,
-    200 => 1,
-    5 => 10,
-    2 => 10,
-    1 => 2
-  }
-
   def initialize
-    @vending_machine = VendingMachine.new([], Change.new(INITIAL_BALANCE))
-    setup_items_available_for_purchase
+    setup_core_components
+    setup_cli_components
+    setup_router_and_runner
   end
 
   def run
-    puts '=== Vending Machine CLI ==='
-    puts 'Welcome! What would you like to purchase through the Vending machine?'
-    puts
-
-    loop do
-      display_menu
-      choice = get_user_choice
-
-      case choice
-      when '1'
-        display_items
-      when '2'
-        purchase_with_session
-      when '3'
-        display_balance
-      when '4'
-        return_change
-      when '5'
-        display_machine_status
-      when '6'
-        reload_items
-      when '7'
-        reload_change_menu
-      when 'q', 'quit', 'exit'
-        puts 'Goodbye!'
-        break
-      else
-        puts 'Invalid choice. Please try again.'
-      end
-
-      puts
-    end
+    @runner.run
   end
 
   private
 
-  def setup_items_available_for_purchase
-    items = [
-      Item.new('Coke', 150, 5),      # €1.50 = 150 cents
-      Item.new('Chips', 100, 3),     # €1.00 = 100 cents
-      Item.new('Candy', 75, 8),      # €0.75 = 75 cents
-      Item.new('Water', 125, 2)      # €1.25 = 125 cents
-    ]
-    @vending_machine = VendingMachine.new(items, Change.new(INITIAL_BALANCE))
+  def setup_core_components
+    @initializer = VendingMachineInitializer.new
+    @vending_machine = @initializer.initialize_vending_machine
+    @currency_formatter = CurrencyFormatter.new
   end
 
-  def display_menu
-    puts 'Choose an option:'
-    puts '1. Display available items'
-    puts '2. Purchase item with session'
-    puts '3. Display current balance'
-    puts '4. Return change'
-    puts '5. Display machine status'
-    puts '6. Reload items'
-    puts '7. Reload change'
-    puts 'q. Quit'
-    print 'Enter your choice: '
+  def setup_cli_components
+    @display = VendingMachineDisplay.new(@vending_machine, @currency_formatter)
+    @input_handler = UserInputHandler.new
+    @payment_parser = PaymentInputParser.new
+    @item_selector = ItemSelector.new(@vending_machine, @currency_formatter)
+
+    @purchase_orchestrator = PurchaseSessionOrchestrator.new(
+      @vending_machine,
+      @payment_parser,
+      @display,
+      @input_handler
+    )
+
+    @item_reloader = ItemReloader.new(@vending_machine, @display, @input_handler)
+    @change_reloader = ChangeReloader.new(
+      @vending_machine,
+      @currency_formatter,
+      @payment_parser,
+      @input_handler
+    )
   end
 
-  def get_user_choice
-    input = gets
-    return 'q' if input.nil?
+  def setup_router_and_runner
+    @purchase_executor = PurchaseExecutor.new(
+      @display,
+      @input_handler,
+      @item_selector,
+      @purchase_orchestrator
+    )
 
-    input.chomp.downcase
-  end
+    @menu_router = MenuRouter.new(
+      @display,
+      @item_reloader,
+      @change_reloader,
+      @purchase_executor
+    )
 
-  def safe_gets
-    input = gets
-    return nil if input.nil?
-
-    input.chomp
-  end
-
-  def display_items
-    puts "\n=== Available Items in the Vending Machine ==="
-    @vending_machine.items.each_with_index do |item, index|
-      price_in_euros = item.price / 100.0
-      puts "#{index + 1}. #{item.name} - €#{price_in_euros} (#{item.quantity} available)"
-    end
-  end
-
-  def display_balance
-    puts "\n=== Current Balance ==="
-    puts "Available change: #{format_currency(@vending_machine.available_change)}"
-    puts "Coins: #{@vending_machine.balance_in_english}"
-  end
-
-  def return_change
-    puts "\n=== Return Change ==="
-    puts 'Note: Change is automatically returned after each purchase.'
-    puts "Available change in machine: #{format_currency(@vending_machine.available_change)}"
-    puts "Coins: #{@vending_machine.balance_in_english}"
-  end
-
-  def display_machine_status
-    puts "\n=== Machine Status ==="
-    puts "Available change: #{format_currency(@vending_machine.available_change)}"
-    puts "Coins: #{@vending_machine.balance_in_english}"
-    puts
-    puts 'Items in stock:'
-    @vending_machine.items.each do |item|
-      puts "  #{item.name}: #{item.quantity} units"
-    end
-  end
-
-  def format_currency(amount)
-    '€%.2f' % amount
-  end
-
-  def purchase_with_session
-    puts "\n=== Purchase Item with Session ==="
-
-    item = let_user_select_item
-    return unless item
-
-    show_selected_item_details(item)
-    start_purchase_session_for(item)
-    collect_payment_until_complete
-  end
-
-  def let_user_select_item
-    display_items
-    item_number = ask_for_item_number
-    return nil unless item_number
-
-    find_item_by_number(item_number)
-  end
-
-  def ask_for_item_number
-    print 'Enter item number to purchase: '
-    input = safe_gets
-    return nil if input.nil?
-
-    input.to_i
-  end
-
-  def find_item_by_number(item_number)
-    item_index = item_number - 1
-
-    if item_index_is_invalid?(item_index)
-      puts 'Invalid item number.'
-      return nil
-    end
-
-    @vending_machine.items[item_index]
-  end
-
-  def item_index_is_invalid?(index)
-    index < 0 || index >= @vending_machine.items.length
-  end
-
-  def show_selected_item_details(item)
-    price_in_euros = item.price / 100.0
-    puts "Selected: #{item.name} - €#{price_in_euros}"
-    puts
-  end
-
-  def start_purchase_session_for(item)
-    puts 'Starting purchase session...'
-    result = @vending_machine.start_purchase(item.name)
-    puts result
-  end
-
-  def collect_payment_until_complete
-    loop do
-      payment_input = request_payment_from_user
-      return if payment_input.nil?
-
-      if user_wants_to_cancel?(payment_input)
-        cancel_current_purchase
-        break
-      end
-
-      break if process_payment_input(payment_input)
-    end
-  end
-
-  def request_payment_from_user
-    puts
-    show_payment_instructions
-    print "Enter payment hash (or 'cancel' to cancel): "
-    safe_gets
-  end
-
-  def show_payment_instructions
-    puts 'Format: Enter payment as a hash of coin denominations in cents'
-    puts 'Example: {100 => 2, 25 => 1} means 2, 1 Euro coins(100 cents is 1 Euro) + 1 quarter = $2.25'
-    puts 'Available denominations: 1, 2, 5, 10, 20, 50, 100, 200 cents'
-  end
-
-  def user_wants_to_cancel?(input)
-    input.downcase == 'cancel'
-  end
-
-  def cancel_current_purchase
-    puts @vending_machine.cancel_purchase
-  end
-
-  def process_payment_input(input)
-    payment = parse_payment_hash(input)
-    return false if payment.nil?
-
-    insert_payment_and_check_if_complete(payment)
-  rescue StandardError => e
-    show_payment_error(e)
-    false
-  end
-
-  def insert_payment_and_check_if_complete(payment)
-    result = @vending_machine.insert_payment(payment)
-    puts result
-    payment_is_complete?(result)
-  end
-
-  def payment_is_complete?(result)
-    result.include?('Payment complete') || result.include?('Thank you for your purchase')
-  end
-
-  def show_payment_error(error)
-    puts "Error parsing input: #{error.message}"
-    puts 'Please use the format: {100 => 2, 25 => 1}'
-  end
-
-  def parse_payment_hash(input)
-    return nil unless input_looks_like_hash?(input)
-
-    content = extract_hash_content(input)
-    return {} if content_is_empty?(content)
-
-    build_payment_from_content(content)
-  rescue StandardError => e
-    show_parsing_error(e)
-    nil
-  end
-
-  def extract_hash_content(input)
-    input.strip[/{(.*)}/m, 1]
-  end
-
-  def content_is_empty?(content)
-    content.nil? || content.strip.empty?
-  end
-
-  def build_payment_from_content(content)
-    payment = {}
-    coin_entries = split_into_coin_entries(content)
-
-    coin_entries.each do |entry|
-      denomination, count = parse_single_coin_entry(entry)
-      return nil unless denomination && count
-
-      return nil unless count_is_valid?(count)
-
-      payment[denomination] = count
-    end
-
-    payment
-  end
-
-  def split_into_coin_entries(content)
-    content.split(',').map(&:strip)
-  end
-
-  def parse_single_coin_entry(entry)
-    match = entry.match(/\A\s*(\d+)\s*=>\s*(\d+)\s*\z/)
-
-    unless match
-      puts "Invalid pair format: '#{entry}'. Expected format: 'denomination => count'"
-      return [nil, nil]
-    end
-
-    [match[1].to_i, match[2].to_i]
-  end
-
-  def count_is_valid?(count)
-    if count <= 0
-      puts "Invalid count: #{count}. Count must be positive."
-      return false
-    end
-
-    true
-  end
-
-  def show_parsing_error(error)
-    puts "Error parsing payment hash: #{error.message}"
-    puts 'Please use the format: {100 => 2, 25 => 1}'
-  end
-
-  def input_looks_like_hash?(input)
-    clean_input = input.strip
-
-    unless clean_input.start_with?('{') && clean_input.end_with?('}')
-      puts 'Invalid format. Input must be in hash format like {100 => 2, 50 => 1}'
-      return false
-    end
-
-    true
+    @runner = ApplicationRunner.new(
+      @display,
+      @input_handler,
+      @menu_router
+    )
   end
 end
 
-def reload_items
-  puts "\n=== Reload Items ==="
-  puts 'Current stock:'
-  puts @vending_machine.display_stock
-  puts
-  print 'Enter item name: '
-
-  item_name = safe_gets
-  return if item_name.nil?
-
-  print 'Enter quantity to add: '
-  quantity_input = safe_gets
-  return if quantity_input.nil?
-
-  quantity = quantity_input.to_i
-
-  # Check if item exists
-  existing_item = @vending_machine.items.find { |item| item.name == item_name }
-
-  if existing_item.nil?
-    print 'New item detected. Enter price in cents (e.g., 150 for €1.50): '
-    price_input = safe_gets
-    return if price_input.nil?
-
-    price = price_input.to_i
-    result = @vending_machine.reload_item(item_name, quantity, price)
-  else
-    result = @vending_machine.reload_item(item_name, quantity)
-  end
-
-  puts result
-end
-
-def reload_change_menu
-  puts "\n=== Reload Change ==="
-  puts "Current balance: #{format_currency(@vending_machine.available_change)}"
-  puts "Coins: #{@vending_machine.balance_in_english}"
-  puts
-  puts 'Format: Enter coins as a hash of denominations in cents'
-  puts 'Example: {100 => 5, 50 => 10} means 5 €1 coins and 10 50-cent coins'
-  puts 'Available denominations: 1, 2, 5, 10, 20, 50, 100, 200 cents'
-  print 'Enter coins to add: '
-
-  input = safe_gets
-  return if input.nil?
-
-  begin
-    coins = eval(input)
-    unless coins.is_a?(Hash)
-      puts 'Invalid format. Please use a hash.'
-      return
-    end
-
-    result = @vending_machine.reload_change(coins)
-    puts result
-  rescue StandardError => e
-    puts "Error parsing input: #{e.message}"
-    puts 'Please use the format: {100 => 5, 50 => 10}'
-  end
-end
-
-if __FILE__ == $0
+if __FILE__ == $PROGRAM_NAME
   cli = VendingMachineCLI.new
   cli.run
 end

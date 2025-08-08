@@ -1,0 +1,32 @@
+require 'spec_helper'
+require_relative '../../../lib/cli/currency_formatter'
+require_relative '../../../lib/item'
+
+RSpec.describe CurrencyFormatter do
+  let(:formatter) { described_class.new }
+
+  describe '#format_amount' do
+    it 'formats amount in cents to euro currency format' do
+      expect(formatter.format_amount(150)).to eq('€1.50')
+      expect(formatter.format_amount(100)).to eq('€1.00')
+      expect(formatter.format_amount(75)).to eq('€0.75')
+      expect(formatter.format_amount(0)).to eq('€0.00')
+    end
+  end
+
+  describe '#format_item_price' do
+    it 'formats item price using format_amount' do
+      item = Item.new('Coke', 150, 5)
+      expect(formatter.format_item_price(item)).to eq('€1.50')
+    end
+  end
+
+  describe '#cents_to_euros' do
+    it 'converts cents to euros as decimal' do
+      expect(formatter.cents_to_euros(150)).to eq(1.5)
+      expect(formatter.cents_to_euros(100)).to eq(1.0)
+      expect(formatter.cents_to_euros(75)).to eq(0.75)
+      expect(formatter.cents_to_euros(0)).to eq(0.0)
+    end
+  end
+end

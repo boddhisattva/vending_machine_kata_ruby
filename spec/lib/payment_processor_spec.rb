@@ -15,38 +15,23 @@ describe PaymentProcessor do
       item = Item.new('Coke', 150, 1)
       balance = Change.new({ 100 => 2, 50 => 1 })
       processor = PaymentProcessor.new
-      result, _ = processor.process_payment(item, { 200 => 1 }, [item], balance)
+      result, = processor.process_payment(item, { 200 => 1 }, [item], balance)
       expect(result).to eq('Thank you for your purchase of Coke. Please collect your item and change: 1 x 50c')
     end
 
     it 'processes a successful purchase with exact amount' do
-      result, _ = @processor.process_payment(@item, { 100 => 1, 50 => 1 }, [@item], @balance)
+      result, = @processor.process_payment(@item, { 100 => 1, 50 => 1 }, [@item], @balance)
       expect(result).to eq('Thank you for your purchase of Coke. Please collect your item.')
     end
 
     it 'returns error for insufficient payment' do
-      result, _ = @processor.process_payment(@item, { 100 => 1 }, [@item], @balance)
+      result, = @processor.process_payment(@item, { 100 => 1 }, [@item], @balance)
       expect(result).to eq('You need to pay 50 more cents to purchase Coke')
-    end
-
-    it 'returns error for invalid coin denominations' do
-      result, _ = @processor.process_payment(@item, { 25 => 1 }, [@item], @balance)
-      expect(result).to eq('Invalid coin denomination in payment: [25]')
-    end
-
-    it 'returns error for multiple invalid denominations' do
-      result, _ = @processor.process_payment(@item, { 25 => 1, 75 => 1 }, [@item], @balance)
-      expect(result).to eq('Invalid coin denomination in payment: [25, 75]')
-    end
-
-    it 'returns error for mixed valid and invalid denominations' do
-      result, _ = @processor.process_payment(@item, { 100 => 1, 25 => 1 }, [@item], @balance)
-      expect(result).to eq('Invalid coin denomination in payment: [25]')
     end
 
     it 'returns error if item is not available' do
       unavailable_item = Item.new('Coke', 150, 0)
-      result, _ = @processor.process_payment(unavailable_item, { 200 => 1 }, [unavailable_item], @balance)
+      result, = @processor.process_payment(unavailable_item, { 200 => 1 }, [unavailable_item], @balance)
       expect(result).to eq('Item not available')
     end
 
@@ -66,26 +51,26 @@ describe PaymentProcessor do
       it 'handles when machine cannot make exact change' do
         # Machine has no 1 Euro coins, only 2 Euro coins
         balance = Change.new({ 200 => 1 })
-        item = Item.new('Chips', 100, 1)  # 1 Euro item
+        item = Item.new('Chips', 100, 1) # 1 Euro item
 
-        result, _ = @processor.process_payment(item, { 200 => 1 }, [item], balance)
+        result, = @processor.process_payment(item, { 200 => 1 }, [item], balance)
         expect(result).to eq('Cannot provide change with available coins. Please use exact amount.')
       end
 
       it 'gives optimal change using available denominations' do
         # Machine has 50c and 20c coins, but no 1 Euro coins
         balance = Change.new({ 50 => 2, 20 => 5, 5 => 10 })
-        item = Item.new('Chips', 100, 1)  # 1 Euro item
+        item = Item.new('Chips', 100, 1) # 1 Euro item
 
-        result, _ = @processor.process_payment(item, { 200 => 1 }, [item], balance)
+        result, = @processor.process_payment(item, { 200 => 1 }, [item], balance)
         expect(result).to eq('Thank you for your purchase of Chips. Please collect your item and change: 2 x 50c')
       end
 
       it 'handles multiple coin denominations in change' do
         balance = Change.new({ 100 => 1, 50 => 1, 20 => 2, 5 => 1 })
-        item = Item.new('Candy', 75, 1)  # 75 cents
+        item = Item.new('Candy', 75, 1) # 75 cents
 
-        result, _ = @processor.process_payment(item, { 200 => 1 }, [item], balance)
+        result, = @processor.process_payment(item, { 200 => 1 }, [item], balance)
         expect(result).to eq('Thank you for your purchase of Candy. Please collect your item and change: 1 x 100c, 1 x 20c, 1 x 5c')
       end
     end

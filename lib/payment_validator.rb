@@ -2,11 +2,16 @@ class PaymentValidator
   def validate_purchase(item, payment, balance)
     return ['Item not available', balance] unless item_available?(item)
     return validate_payment_denominations(payment, balance) unless payment_denominations_valid?(payment)
+
     nil
   end
 
   def validate_payment_amount(item, total_payment_for_item, balance)
-    return [specify_amount_pending(item, total_payment_for_item - item.price), balance] unless total_payment_for_item >= item.price
+    unless total_payment_for_item >= item.price
+      return [specify_amount_pending(item, total_payment_for_item - item.price),
+              balance]
+    end
+
     nil
   end
 
