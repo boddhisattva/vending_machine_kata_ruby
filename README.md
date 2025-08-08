@@ -1,10 +1,10 @@
 # Vending Machine (Ruby)
 
 ## About
-Solves for building a Vending Machine  based on the problem statement here: problem_statement.md
+Solves for building a Vending Machine  based on the problem statement here: [problem_statement.md](https://github.com/boddhisattva/vending_machine_kata_ruby/blob/main/problem_statement.md)
 
 ## Visual Representation of Key Flows with using Vending Machine Functionality
-Please refer to `docs/cli_flow_diagrams.md` for Key Flows
+Please refer to `[docs/cli_flow_diagrams.md](https://github.com/boddhisattva/vending_machine_kata_ruby/blob/main/docs/cli_flow_diagrams.md)` for Key Flows
 involving the Vending Machine usage including
 - Happy path
 - Reload functionality
@@ -17,33 +17,48 @@ involving the Vending Machine usage including
   ### Core Architecture Principles
 
   #### Separation of Concerns
-  ┌─────────────────┐
-  │   CLI Layer     │  (User Interface)
-  │  bin/ & lib/cli/│
-  └────────┬────────┘
-           │
-  ┌────────▼────────┐
-  │  Business Logic │  (Core Domain)
-  │      lib/       │
-  └────────┬────────┘
-           │
-  ┌────────▼────────┐
-  │   Data Layer    │  (State Management)
-  │  Items, Balance │
-  └─────────────────┘
 
-  #### Modular Component Design
-  - **VendingMachine**: Main orchestrator, delegates to specialized components
-  - **PaymentProcessor**: Handles all payment transactions and change calculation
-  - **SessionManager**: Manages multi-step purchase sessions
-  - **ReloadManager**: Handles inventory and change reloading
-  - **Validators**: Dedicated classes for each validation concern
-    - PaymentValidator: Validates denominations and amounts
-    - ReloadValidator: Validates reload operations
-    - ChangeValidator: Ensures change can be made
-  - **Formatters**: Consistent formatting across the application
-    - CurrencyFormatter: Euro formatting
-    - CoinFormatter: Change display formatting
+  ```
+    ┌─────────────────┐
+    │   CLI Layer     │  (User Interface)
+    │  bin/ & lib/cli/│
+    └────────┬────────┘
+            │
+    ┌────────▼────────┐
+    │  Business Logic │  (Core Domain)
+    │      lib/       │
+    └────────┬────────┘
+            │
+    ┌────────▼────────┐
+    │   Data Layer    │  (State Management)
+    │  Items, Balance │
+    └─────────────────┘
+  ```
+
+  #### Key Components of the Vending Machine CLI
+  **Core Components:**
+    - **VendingMachine**: Main orchestrator, delegates to specialized components
+    - **PurchaseSessionOrchestrator**: CLI-specific coordinator that manages the interactive payment collection loop, handling user input and payment parsing until purchase
+    completion
+    - **PaymentProcessor**: Handles all payment transactions and change calculation
+    - **SessionManager**: Manages multi-step purchase sessions
+    - **ReloadManager**: Handles inventory and change reloading
+    - **Validators**: Dedicated classes for each validation concern
+      - PaymentValidator: Validates denominations and amounts
+      - ReloadValidator: Validates reload operations
+      - ChangeValidator: Ensures change can be made
+    - **Formatters**: Consistent formatting across the application
+      - CurrencyFormatter: Euro formatting
+
+  **CLI-Specific Components:**
+    - PurchaseExecutor: Orchestrates the item selection phase of a CLI purchase
+    - ItemSelector: Handles item selection by number with validation and display
+    - UserInputHandler: Captures and sanitizes user keyboard input
+    - VendingMachineDisplay: Renders all UI output (menus, status, messages)
+    - PaymentInputParser: Parses string input like "{100 => 2}" into payment hashes
+    - MenuRouter: Routes menu choices to appropriate actions
+    - ItemReloader: Handles CLI flow for reloading items interactively
+    - ChangeReloader: Handles CLI flow for reloading change interactively
 
   ### Session-Based Purchase Flow
 
