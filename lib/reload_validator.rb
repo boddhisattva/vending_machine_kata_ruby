@@ -1,12 +1,12 @@
 # lib/reload_validator.rb
 
 class ReloadValidator
-  def validate_item_reload(items, item_name, quantity, price = nil)
+  def validate_item_reload(items_index, item_name, quantity, price = nil)
     return 'Invalid item name' if item_name.nil? || item_name.to_s.strip.empty?
-    
+
     return 'Invalid quantity. Please provide a positive number.' unless quantity.is_a?(Integer) && quantity > 0
 
-    existing_item = items.find { |item| item.name == item_name }
+    existing_item = items_index[item_name]
 
     return 'Price required for new item' if existing_item.nil? && price.nil?
 

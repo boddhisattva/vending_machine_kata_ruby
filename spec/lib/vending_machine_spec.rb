@@ -144,7 +144,7 @@ describe VendingMachine do
         custom_machine = VendingMachine.new(items, balance, PaymentProcessor.new,
                                             SingleUserSessionManager.new, reload_manager)
 
-        expect(reload_manager).to receive(:reload_item).with(items, 'Coke', 5, nil)
+        expect(reload_manager).to receive(:reload_item).with(items, hash_including('Coke' => items[0]), 'Coke', 5, nil)
         custom_machine.reload_item('Coke', 5)
       end
     end

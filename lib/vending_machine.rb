@@ -17,11 +17,12 @@ class VendingMachine
     @session_manager = session_manager
     @reload_manager = reload_manager
     @current_session_id = nil
+    @items_index = build_items_index
   end
 
   # Keep existing interface for backward compatibility
   def purchase_item(item_name, payment)
-    item = items.find { |item| item.name == item_name }
+    item = @items_index[item_name]
 
     result, @balance = payment_processor.process_payment(item, payment, items, balance)
     result
@@ -29,7 +30,7 @@ class VendingMachine
 
   # New session-based interface
   def start_purchase(item_name)
-    item = items.find { |item| item.name == item_name }
+    item = @items_index[item_name]
     return 'Item not found' unless item
 
     result = @session_manager.start_session(item)
@@ -86,7 +87,8 @@ class VendingMachine
   end
 
   def reload_item(item_name, quantity, price = nil)
-    message, @items = @reload_manager.reload_item(@items, item_name, quantity, price)
+    message, @items = @reload_manager.reload_item(@items, @items_index, item_name, quantity, price)
+    rebuild_items_index # Rebuild index after items change
     message
   end
 
@@ -97,6 +99,14 @@ class VendingMachine
   end
 
   private
+
+  def build_items_index
+    @items.each_with_object({}) { |item, hash| hash[item.name] = item }
+  end
+
+  def rebuild_items_index
+    @items_index = build_items_index
+  end
 
   def complete_current_purchase
     complete_purchase
