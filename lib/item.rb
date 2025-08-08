@@ -1,5 +1,3 @@
-require 'money'
-
 class Item
   def initialize(name, price, quantity)
     @name = name

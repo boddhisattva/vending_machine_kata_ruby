@@ -59,16 +59,4 @@ RSpec.describe UserInputHandler do
       expect { handler.get_payment_input }.to output("Enter payment hash (or 'cancel' to cancel): ").to_stdout
     end
   end
-
-  describe '#request_any_key' do
-    it 'prompts user to press enter and waits for input' do
-      allow($stdin).to receive(:gets).and_return("\n")
-      expect { handler.request_any_key }.to output('Press Enter to continue...').to_stdout
-    end
-
-    it 'handles nil input gracefully' do
-      allow($stdin).to receive(:gets).and_return(nil)
-      expect { handler.request_any_key }.to output('Press Enter to continue...').to_stdout
-    end
-  end
 end

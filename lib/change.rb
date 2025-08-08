@@ -1,7 +1,3 @@
-require 'money'
-
-# 1072 --> 50 * 10 + 10 * 10 + 20  * 10 + 2 * 100 + 5* 10 + 2 * 10 + 1 * 2
-
 class Change
   DEFAULT_CURRENCY = 'EUR'
 
@@ -48,10 +44,10 @@ class Change
     parts.empty? ? 'No coins' : parts.join(', ')
   end
 
-  def to_dollars
+  def to_euros
     total_cents = calculate_total_amount
-    dollars = total_cents.to_f / 100.0
-    dollars.round(2)
+    euros = total_cents.to_f / 100.0
+    euros.round(2)
   end
 
   def format_for_return
