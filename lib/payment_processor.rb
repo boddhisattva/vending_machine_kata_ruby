@@ -8,28 +8,25 @@ class PaymentProcessor
   end
 
   def process_payment(item, payment, _items, balance)
-    @balance = balance # Store the balance as instance variable
-    # TODO: Consider later if @balance needs to be an instance variable or a local variable/parameter
-
-    validation_result = @payment_validator.validate_purchase(item, payment, @balance)
+    validation_result = @payment_validator.validate_purchase(item, payment, balance)
     return validation_result unless validation_result.nil?
 
     total_payment_for_item = payment.sum { |denom, count| denom * count }
 
-    payment_validation = @payment_validator.validate_payment_amount(item, total_payment_for_item, @balance)
+    payment_validation = @payment_validator.validate_payment_amount(item, total_payment_for_item, balance)
     return payment_validation unless payment_validation.nil?
 
-    process_transaction(item, payment, total_payment_for_item)
+    process_transaction(item, payment, total_payment_for_item, balance)
   end
 
   private
 
-  def process_transaction(item, payment, total_payment_for_item)
+  def process_transaction(item, payment, total_payment_for_item, balance)
     item_price_in_cents = item.price
     change_in_cents = total_payment_for_item > item_price_in_cents ? total_payment_for_item - item_price_in_cents : 0
 
     # Add the payment coins to the machine's balance (simulate before confirming)
-    new_balance = @balance.amount.dup
+    new_balance = balance.amount.dup
     payment.each do |denom, count|
       new_balance[denom] ||= 0
       new_balance[denom] += count
@@ -38,10 +35,10 @@ class PaymentProcessor
     # Try to make change
     change_given, updated_balance = make_change(new_balance, change_in_cents)
 
-    # Update the machine's balance
-    @balance = Change.new(updated_balance)
+    # Create updated balance object
+    updated_balance_obj = Change.new(updated_balance)
     item.quantity -= 1
-    [confirm_payment(item, change_given), @balance]
+    [confirm_payment(item, change_given), updated_balance_obj]
   end
 
   def confirm_payment(item, change_given)
