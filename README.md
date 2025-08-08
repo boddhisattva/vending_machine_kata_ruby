@@ -37,28 +37,43 @@ involving the Vending Machine usage including
 
   #### Key Components of the Vending Machine CLI
   **Core Components:**
-    - **VendingMachine**: Main orchestrator, delegates to specialized components
-    - **PurchaseSessionOrchestrator**: CLI-specific coordinator that manages the interactive payment collection loop, handling user input and payment parsing until purchase
-    completion
-    - **PaymentProcessor**: Handles all payment transactions and change calculation
-    - **SessionManager**: Manages multi-step purchase sessions
-    - **ReloadManager**: Handles inventory and change reloading
-    - **Validators**: Dedicated classes for each validation concern
-      - PaymentValidator: Validates denominations and amounts
-      - ReloadValidator: Validates reload operations
-      - ChangeValidator: Ensures change can be made
-    - **Formatters**: Consistent formatting across the application
-      - CurrencyFormatter: Euro formatting
+  - **VendingMachine**: Main orchestrator, delegates to specialized components
+
+  - **PurchaseSessionOrchestrator**: CLI-specific coordinator that manages the interactive payment collection loop, handling user input and payment parsing until purchase
+  completion
+
+  - **PaymentProcessor**: Handles all payment transactions and change calculation
+
+  - **SessionManager**: Manages multi-step purchase sessions
+
+  - **ReloadManager**: Handles inventory and change reloading
+
+  - **Validators**: Dedicated classes for each validation concern
+
+    - PaymentValidator: Validates denominations and amounts
+    - ReloadValidator: Validates reload operations
+    - ChangeValidator: Ensures change can be made
+
+  - **Formatters**: Consistent formatting across the application
+    - CurrencyFormatter: Euro formatting
 
   **CLI-Specific Components:**
-    - PurchaseExecutor: Orchestrates the item selection phase of a CLI purchase
-    - ItemSelector: Handles item selection by number with validation and display
-    - UserInputHandler: Captures and sanitizes user keyboard input
-    - VendingMachineDisplay: Renders all UI output (menus, status, messages)
-    - PaymentInputParser: Parses string input like "{100 => 2}" into payment hashes
-    - MenuRouter: Routes menu choices to appropriate actions
-    - ItemReloader: Handles CLI flow for reloading items interactively
-    - ChangeReloader: Handles CLI flow for reloading change interactively
+  - PurchaseExecutor: Orchestrates the item selection phase of a CLI purchase
+
+  - ItemSelector: Handles item selection by number with validation and display
+
+  - UserInputHandler: Captures and sanitizes user keyboard input
+
+  - VendingMachineDisplay: Renders all UI output (menus, status, messages)
+
+  - PaymentInputParser: Parses string input like "{100 => 2}" into payment hashes
+
+  - MenuRouter: Routes menu choices to appropriate actions
+
+  - ItemReloader: Handles CLI flow for reloading items interactively
+
+  - ChangeReloader: Handles CLI flow for reloading change interactively
+
 
   ### Session-Based Purchase Flow
 
@@ -72,6 +87,7 @@ involving the Vending Machine usage including
   3. VALIDATE CHANGE AVAILABILITY
      ↓
   4. COMPLETE or AUTO-CANCEL WITH REFUND
+  ```
 
 ## Features
 - Default currency: Euro (€)
@@ -85,20 +101,20 @@ involving the Vending Machine usage including
 - Displays available change and coin breakdown in plain English
 
 ## Performance Optimizations
-  - O(1) Item Lookup
-
-  # Instead of O(n) linear search:
-  items.find { |item| item.name == item_name }  # Slow for large inventories
-
-  # We use O(1) hash lookup:
-  @items_index[item_name]  # Instant access regardless of inventory size
+  - O(1) Item Lookup using Hashes instead of using Array based Linear Search
+  to find each matching item
 
 ## Assumptions
-- A user can purchase only one item at a time
+- A user can purchase only one item at a time through the Vending Machine
 
 ## Usage
 
+### Prerequisities
+- Ruby version 3.3.4
+
 ### Running the Vending Machine CLI
+
+- From the project Root directory
 
 ```sh
 ruby bin/vending_machine_cli.rb
@@ -143,12 +159,11 @@ The machine starts with the following coins:
 
 ### Initial Items in Vending Machine
 ```
-  INITIAL_ITEMS = [
-    { name: 'Coke', price: 150, quantity: 5 },
-    { name: 'Chips', price: 100, quantity: 3 },
-    { name: 'Candy', price: 75, quantity: 8 },
-    { name: 'Water', price: 125, quantity: 2 }
-  ]
+  { name: 'Coke', price: 150, quantity: 5 },
+  { name: 'Chips', price: 100, quantity: 3 },
+  { name: 'Candy', price: 75, quantity: 8 },
+  { name: 'Water', price: 125, quantity: 2 }
+
 ```
 
 ## Notes
