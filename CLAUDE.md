@@ -16,7 +16,7 @@ This is a Ruby implementation of a vending machine kata. The project models a ve
 The system is built around three main classes:
 - `VendingMachine`: Main orchestrator that manages items and balance
 - `Item`: Represents products with name and price
-- `Change`: Handles monetary denominations (1p, 2p, 5p, 10p, 20p, 50p, £1, £2)
+- `Change`: Handles monetary denominations (1p, 2p, 5p, 10p, 20p, 50p, €1, €2)
 
 All classes are in `lib/` directory and follow Ruby conventions with corresponding specs in `spec/lib/`.
 
@@ -73,7 +73,7 @@ bundle update
 - Follow TDD approach - specs are the primary way to verify functionality
 
 ### Money Gem Usage
-- All prices and amounts use `Money.new(amount_in_pence, 'GBP')`
-- Example: £1.50 = `Money.new(150, 'GBP')`
-- Acceptable coins: 1p, 2p, 5p, 10p, 20p, 50p, £1, £2
+- All prices and amounts use `Money.new(amount_in_cents, 'EUR')`
+- Example: €1.50 = `Money.new(150, 'EUR')`
+- Acceptable coins: 1p, 2p, 5p, 10p, 20p, 50p, €1, €2
 - Classes automatically convert numeric inputs to Money objects
