@@ -13,6 +13,7 @@ class VendingMachineInitializer
     2 => 10,
     1 => 2
   }.freeze
+  # Initial Balance Euro 10,72 --> 50 * 10 + 10 * 10 + 20  * 10 + 2 * 100 + 5* 10 + 2 * 10 + 1 * 2
 
   INITIAL_ITEMS = [
     { name: 'Coke', price: 150, quantity: 5 },
