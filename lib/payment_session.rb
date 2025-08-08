@@ -20,23 +20,23 @@ class PaymentSession
     calculate_remaining_amount
   end
 
-  def total_paid
-    @accumulated_payment.sum { |denomination, count| denomination * count }
+  def sufficient_funds?
+    total_paid >= @total_needed
   end
+
+  private
 
   def calculate_remaining_amount
     [@total_needed - total_paid, 0].max
-  end
-
-  def sufficient_funds?
-    total_paid >= @total_needed
   end
 
   def get_change_amount
     [total_paid - @total_needed, 0].max
   end
 
-  private
+  def total_paid
+    @accumulated_payment.sum { |denomination, count| denomination * count }
+  end
 
   def generate_session_id
     SecureRandom.uuid
