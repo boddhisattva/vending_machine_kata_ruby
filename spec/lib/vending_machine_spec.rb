@@ -380,17 +380,7 @@ describe VendingMachine do
           end
         end
 
-        context 'when the quantity of the item is 0' do
-          let(:item_quantity) { 0 }
-          let(:items) { [Item.new('Coke', 150, item_quantity)] }
-          it 'returns an error message' do
-            vending_machine = VendingMachine.new(items, balance)
-            expect(vending_machine.purchase_item('Coke',
-                                                 150)).to eq('Item not available')
-          end
-        end
-
-        context 'when purchasing the last item' do
+        context 'when purchasing the last item and then trying to purchase again' do
           let(:items) { [Item.new('Coke', 150, 1)] }
           it 'decrements quantity to 0 and item becomes unavailable' do
             vending_machine = VendingMachine.new(items, balance)
@@ -403,11 +393,6 @@ describe VendingMachine do
 
             # Second purchase should fail
             expect(vending_machine.purchase_item('Coke', { 200 => 1 })).to eq('Item not available')
-          end
-        end
-
-        context 'when the machine does not have enough change' do
-          it 'should ask to render exact amount' do
           end
         end
 
@@ -432,9 +417,6 @@ describe VendingMachine do
                                                    25 => 1 })).to eq('Invalid coin denomination in payment: [25]')
           end
         end
-
-        # context 'change given in valid amount type' do
-        # end check the coins specified are valid
       end
     end
   end
@@ -546,9 +528,9 @@ describe VendingMachine do
       # Start purchase session and try to pay with €2 for €1 item
       machine.start_purchase('Chips')
       result = machine.insert_payment({ 200 => 1 })
-      
+
       # Should auto-cancel and refund payment
-      expect(result).to eq("Cannot provide change. Payment refunded: 1 x €2. Please try with exact amount.")
+      expect(result).to eq('Cannot provide change. Payment refunded: 1 x €2. Please try with exact amount.')
     end
   end
 
