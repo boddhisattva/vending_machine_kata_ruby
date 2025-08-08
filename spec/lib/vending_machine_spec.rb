@@ -547,8 +547,8 @@ describe VendingMachine do
       machine.start_purchase('Chips')
       result = machine.insert_payment({ 200 => 1 })
       
-      # Should get error about insufficient change
-      expect(result).to eq("Cannot provide change with available coins. Please type 'cancel' to get refund and to restart purchase attempt with the exact amount")
+      # Should auto-cancel and refund payment
+      expect(result).to eq("Cannot provide change. Payment refunded: 1 x €2. Please try with exact amount.")
     end
   end
 

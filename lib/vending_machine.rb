@@ -53,7 +53,21 @@ class VendingMachine
     result = @session_manager.add_payment(@current_session_id, payment)
 
     if result[:success] && result[:completed]
-      complete_current_purchase
+      # Check if we can make change BEFORE completing
+      session = @session_manager.current_session
+      validation_error = @change_validator.validate_change_availability(
+        session.accumulated_payment,
+        session.item.price,
+        @balance
+      )
+      
+      if validation_error
+        # Auto-cancel and refund
+        auto_cancel_with_refund("Cannot provide change.")
+      else
+        # Proceed with normal completion
+        complete_current_purchase
+      end
     else
       result[:message]
     end
@@ -125,23 +139,29 @@ class VendingMachine
     @items_index = build_items_index
   end
 
-  def complete_current_purchase
-    # First check if we can make change before completing the session
-    return 'No active purchase session' unless @current_session_id
-
-    # Get the session to check change-making ability
+  def auto_cancel_with_refund(reason)
+    # Get the payment before cancelling
     session = @session_manager.current_session
+    payment = session.accumulated_payment
+    
+    # Cancel the session
+    result = @session_manager.cancel_session(@current_session_id)
+    @current_session_id = nil
+    
+    # Format refund message
+    if payment && !payment.empty?
+      change_to_return = Change.new(payment)
+      coins_returned = change_to_return.format_for_return
+      "#{reason} Payment refunded: #{coins_returned}. Please try with exact amount."
+    else
+      "#{reason} No payment to refund."
+    end
+  end
 
-    # Validate if we can make change
-    validation_error = @change_validator.validate_change_availability(
-      session.accumulated_payment,
-      session.item.price,
-      @balance
-    )
-
-    return validation_error if validation_error
-
-    # Now we can safely complete the purchase
+  def complete_current_purchase
+    return 'No active purchase session' unless @current_session_id
+    
+    # Change validation now happens in insert_payment, so just complete
     complete_purchase
   end
 

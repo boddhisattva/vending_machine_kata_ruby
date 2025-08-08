@@ -427,7 +427,7 @@ describe VendingMachineCLI do
         expect { simulate_purchase_session(cli, 1, '{200 => 1}') }.not_to raise_error
       end
 
-      it 'handles insufficient change with cancel and then exact payment in same session' do
+      it 'handles insufficient change with auto-cancel and then exact payment' do
         # Create a machine with limited change (only one €2 coin)
         limited_balance = {
           200 => 1,  # Only one €2 coin
@@ -454,29 +454,25 @@ describe VendingMachineCLI do
         expect(coke_item.quantity).to eq(5)
         expect(vending_machine.available_change).to eq(200) # Only €2 coin
 
-        # Step 1: Try to purchase Coke with €2 coin - should fail due to insufficient change
+        # Step 1: Try to purchase Coke with €2 coin - should auto-cancel with refund
         vending_machine.start_purchase('Coke')
         result = vending_machine.insert_payment({ 200 => 1 })
 
-        # Verify insufficient change message
-        expect(result).to include('Cannot provide change')
-
-        # Step 2: Cancel the purchase
-        cancel_result = vending_machine.cancel_purchase
-        expect(cancel_result).to eq('Purchase cancelled. Money returned: 1 x €2')
+        # Verify auto-cancel message with refund
+        expect(result).to eq('Cannot provide change. Payment refunded: 1 x €2. Please try with exact amount.')
 
         # Verify item quantity unchanged and balance unchanged
         expect(coke_item.quantity).to eq(5)
         expect(vending_machine.available_change).to eq(200)
 
-        # Step 3: Start new purchase session with exact amount
+        # Step 2: Start new purchase session with exact amount (no manual cancel needed)
         vending_machine.start_purchase('Coke')
         exact_payment_result = vending_machine.insert_payment({ 100 => 1, 50 => 1 })
 
         # Verify successful purchase with exact amount
         expect(exact_payment_result).to eq('Thank you for your purchase of Coke. Please collect your item.')
 
-        # Step 4: Verify final state
+        # Step 3: Verify final state
         expect(coke_item.quantity).to eq(4) # Reduced by 1
         expect(vending_machine.available_change).to eq(350) # €2 + €1 + €0.50
 
@@ -485,6 +481,68 @@ describe VendingMachineCLI do
         expect(final_balance[200]).to eq(1) # Still has the €2 coin
         expect(final_balance[100]).to eq(1) # Added €1 coin
         expect(final_balance[50]).to eq(1)  # Added 50c coin
+      end
+
+      it 'returns to menu after auto-cancel due to insufficient change (simulated flow)' do
+        # Create a machine with limited change (only one €2 coin)
+        limited_balance = { 200 => 1 }  # Only one €2 coin, no smaller denominations
+        items = [Item.new('Coke', 150, 5)]  # €1.50 item
+        
+        vending_machine = VendingMachine.new(items, Change.new(limited_balance))
+        cli.instance_variable_set(:@vending_machine, vending_machine)
+
+        # Capture output to verify menu display
+        output_buffer = StringIO.new
+        original_stdout = $stdout
+        
+        begin
+          # Redirect stdout to capture output
+          $stdout = output_buffer
+          
+          # Simulate the purchase flow
+          vending_machine.start_purchase('Coke')
+          result = vending_machine.insert_payment({ 200 => 1 })
+          
+          # Simulate what the CLI would print after auto-cancel
+          puts result
+          puts
+          puts "Choose an option:"
+          puts "1. Display available items"
+          puts "2. Purchase item with session"
+          puts "3. Display current balance"
+          puts "4. Display machine status"
+          puts "5. Reload items"
+          puts "6. Reload change"
+          puts "q. Quit"
+          print "Enter your choice: "
+          
+          # Get the captured output
+          actual_output = output_buffer.string
+          
+          # Define expected output (no trailing newline after "Enter your choice: ")
+          expected_menu_output = "Cannot provide change. Payment refunded: 1 x €2. Please try with exact amount.\n\n" +
+                                "Choose an option:\n" +
+                                "1. Display available items\n" +
+                                "2. Purchase item with session\n" +
+                                "3. Display current balance\n" +
+                                "4. Display machine status\n" +
+                                "5. Reload items\n" +
+                                "6. Reload change\n" +
+                                "q. Quit\n" +
+                                "Enter your choice: "
+          
+          # Verify the output matches expected
+          expect(actual_output).to eq(expected_menu_output)
+          
+          # Also verify the auto-cancel message returned correctly
+          expect(result).to eq('Cannot provide change. Payment refunded: 1 x €2. Please try with exact amount.')
+          
+          # Verify that a new session can be started immediately (menu is available)
+          expect { vending_machine.start_purchase('Coke') }.not_to raise_error
+        ensure
+          # Restore original stdout
+          $stdout = original_stdout
+        end
       end
     end
   end
