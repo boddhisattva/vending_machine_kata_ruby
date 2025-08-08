@@ -26,7 +26,7 @@ RSpec.describe VendingMachineDisplay do
         '2. Purchase item with session',
         '3. Display current balance',
         '4. Display machine status',
-        '5. Reload items',
+        '5. Reload or add new items',
         '6. Reload change',
         'q. Quit',
         'Enter your choice: '
