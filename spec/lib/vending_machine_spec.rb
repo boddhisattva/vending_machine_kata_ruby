@@ -535,17 +535,20 @@ describe VendingMachine do
       expect(result).to eq('Thank you for your purchase of Chips. Please collect your item and change: 1 x 100c')
     end
 
-    it 'prevents incorrect pricing setup' do
-      # This should fail if someone tries to use dollar amounts instead of cents
+    it 'handles insufficient change scenario using session API' do
+      # Machine has limited change - only €2 coin available
       items = [
-        Item.new('Chips', 1.00, 3) # Wrong: should be 100 cents, not 1.00
+        Item.new('Chips', 100, 3) # €1.00 item
       ]
-      balance = Change.new({ 100 => 2, 200 => 1 })
+      balance = Change.new({ 200 => 1 }) # Only one €2 coin, no smaller denominations
       machine = VendingMachine.new(items, balance)
 
-      # With 1.00 price, 200 cents payment should be rejected because machine can't make 199 cents change
-      result = machine.purchase_item('Chips', { 200 => 1 })
-      expect(result).to eq('Cannot provide change with available coins. Please use exact amount.')
+      # Start purchase session and try to pay with €2 for €1 item
+      machine.start_purchase('Chips')
+      result = machine.insert_payment({ 200 => 1 })
+      
+      # Should get error about insufficient change
+      expect(result).to eq("Cannot provide change with available coins. Please type 'cancel' to get refund and to restart purchase attempt with the exact amount")
     end
   end
 

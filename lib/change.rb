@@ -54,6 +54,23 @@ class Change
     dollars.round(2)
   end
 
+  def format_for_return
+    return '' if amount.empty?
+
+    coins = amount.sort_by { |denom, _| -denom }.map do |denom, count|
+      next if count <= 0
+
+      if denom >= 100
+        euro_value = denom / 100
+        "#{count} x €#{euro_value}"
+      else
+        "#{count} x #{denom}c"
+      end
+    end.compact
+
+    coins.join(', ')
+  end
+
   private
 
   def coins_in_acceptable_denominations?(amount)
