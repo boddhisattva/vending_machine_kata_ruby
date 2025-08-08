@@ -7,11 +7,11 @@ class ReloadManager
     @reload_validator = reload_validator
   end
 
-  def reload_item(items, item_name, quantity, price = nil)
-    validation_error = @reload_validator.validate_item_reload(items, item_name, quantity, price)
+  def reload_item(items, items_index, item_name, quantity, price = nil)
+    validation_error = @reload_validator.validate_item_reload(items_index, item_name, quantity, price)
     return [validation_error, items] if validation_error
 
-    existing_item = items.find { |item| item.name == item_name }
+    existing_item = items_index[item_name]
 
     if existing_item
       existing_item.quantity += quantity

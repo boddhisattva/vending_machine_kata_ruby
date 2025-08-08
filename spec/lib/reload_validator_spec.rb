@@ -4,65 +4,66 @@ require_relative '../../lib/reload_validator'
 describe ReloadValidator do
   let(:validator) { ReloadValidator.new }
   let(:items) { [Item.new('Coke', 150, 2)] }
+  let(:items_index) { items.each_with_object({}) { |item, hash| hash[item.name] = item } }
 
   describe '#validate_item_reload' do
     context 'validating quantity' do
       it 'returns error for non-integer quantity' do
-        result = validator.validate_item_reload(items, 'Coke', 'five', nil)
+        result = validator.validate_item_reload(items_index, 'Coke', 'five', nil)
         expect(result).to eq('Invalid quantity. Please provide a positive number.')
       end
 
       it 'returns error for negative quantity' do
-        result = validator.validate_item_reload(items, 'Coke', -5, nil)
+        result = validator.validate_item_reload(items_index, 'Coke', -5, nil)
         expect(result).to eq('Invalid quantity. Please provide a positive number.')
       end
 
       it 'returns error for zero quantity' do
-        result = validator.validate_item_reload(items, 'Coke', 0, nil)
+        result = validator.validate_item_reload(items_index, 'Coke', 0, nil)
         expect(result).to eq('Invalid quantity. Please provide a positive number.')
       end
 
       it 'returns error for float quantity' do
-        result = validator.validate_item_reload(items, 'Coke', 5.5, nil)
+        result = validator.validate_item_reload(items_index, 'Coke', 5.5, nil)
         expect(result).to eq('Invalid quantity. Please provide a positive number.')
       end
     end
 
     context 'validating new items' do
       it 'returns error when price missing for new item' do
-        result = validator.validate_item_reload(items, 'Water', 5, nil)
+        result = validator.validate_item_reload(items_index, 'Water', 5, nil)
         expect(result).to eq('Price required for new item')
       end
 
       it 'returns error for non-integer price' do
-        result = validator.validate_item_reload(items, 'Water', 5, 'one-fifty')
+        result = validator.validate_item_reload(items_index, 'Water', 5, 'one-fifty')
         expect(result).to eq('Invalid price. Price must be positive.')
       end
 
       it 'returns error for negative price' do
-        result = validator.validate_item_reload(items, 'Water', 5, -150)
+        result = validator.validate_item_reload(items_index, 'Water', 5, -150)
         expect(result).to eq('Invalid price. Price must be positive.')
       end
 
       it 'returns error for zero price' do
-        result = validator.validate_item_reload(items, 'Water', 5, 0)
+        result = validator.validate_item_reload(items_index, 'Water', 5, 0)
         expect(result).to eq('Invalid price. Price must be positive.')
       end
     end
 
     context 'successful validation' do
       it 'returns nil for valid existing item reload' do
-        result = validator.validate_item_reload(items, 'Coke', 10, nil)
+        result = validator.validate_item_reload(items_index, 'Coke', 10, nil)
         expect(result).to be_nil
       end
 
       it 'returns nil for valid new item' do
-        result = validator.validate_item_reload(items, 'Water', 5, 125)
+        result = validator.validate_item_reload(items_index, 'Water', 5, 125)
         expect(result).to be_nil
       end
 
       it 'ignores price when reloading existing item' do
-        result = validator.validate_item_reload(items, 'Coke', 5, 200)
+        result = validator.validate_item_reload(items_index, 'Coke', 5, 200)
         expect(result).to be_nil
       end
     end
