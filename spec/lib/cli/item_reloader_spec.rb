@@ -22,7 +22,7 @@ RSpec.describe ItemReloader do
                                                        .and_return('Successfully added 3 units to Coke. New quantity: 8')
 
         expected_output = [
-          "\n=== Reload Items ===",
+          "\n=== Reload or Add New Items ===",
           'Current stock:',
           'Coke: 5 units @ €1.50 each',
           '',
@@ -38,7 +38,7 @@ RSpec.describe ItemReloader do
                                                        .and_return('Invalid quantity. Please provide a positive number.')
 
         expected_output = [
-          "\n=== Reload Items ===",
+          "\n=== Reload or Add New Items ===",
           'Current stock:',
           'Coke: 5 units @ €1.50 each',
           '',
@@ -57,7 +57,7 @@ RSpec.describe ItemReloader do
                                                        .and_return('Successfully added new item: Pepsi - €1.75 (5 units)')
 
         expected_output = [
-          "\n=== Reload Items ===",
+          "\n=== Reload or Add New Items ===",
           'Current stock:',
           'Coke: 5 units @ €1.50 each',
           '',
@@ -74,7 +74,7 @@ RSpec.describe ItemReloader do
                                                        .and_return('Invalid price. Please provide a positive number.')
 
         expected_output = [
-          "\n=== Reload Items ===",
+          "\n=== Reload or Add New Items ===",
           'Current stock:',
           'Coke: 5 units @ €1.50 each',
           '',
@@ -90,7 +90,7 @@ RSpec.describe ItemReloader do
         allow(input_handler).to receive(:safe_gets).and_return(nil)
 
         expected_output = [
-          "\n=== Reload Items ===",
+          "\n=== Reload or Add New Items ===",
           'Current stock:',
           'Coke: 5 units @ €1.50 each',
           '',

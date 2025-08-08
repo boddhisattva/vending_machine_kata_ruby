@@ -20,7 +20,7 @@ class ItemReloader
   private
 
   def show_current_stock_status
-    puts "\n=== Reload Items ==="
+    puts "\n=== Reload or Add New Items ==="
     puts 'Current stock:'
     puts @vending_machine.display_stock
     puts
