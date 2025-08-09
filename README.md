@@ -1,7 +1,7 @@
 # Vending Machine (Ruby)
 
 ## About
-Solves for building a Vending Machine  based on the problem statement here: [problem_statement](https://github.com/boddhisattva/vending_machine_kata_ruby/blob/main/problem_statement.md)
+Solves for building a Vending Machine  based on this [problem statement](https://github.com/boddhisattva/vending_machine_kata_ruby/blob/main/problem_statement.md):
 
 ## Diagrammatic Representation of Key Program workflow scenarios
 Please refer to the [cli_flow_diagrams](https://github.com/boddhisattva/vending_machine_kata_ruby/blob/main/docs/cli_flow_diagrams.md) for Key workflows
