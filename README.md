@@ -77,7 +77,7 @@ involving the Vending Machine usage including
 
   ### Session-Based Purchase Flow
 
-  The modern session-based API provides a realistic vending machine experience:
+  The session-based implementation provides a realistic vending machine experience:
 
   ```ruby
   1. START SESSION
@@ -168,6 +168,6 @@ The machine starts with the following coins:
 
 ## Notes
 - All currency is displayed as Euro (€) with two decimals (e.g., `€1.50`)
-- Only the session-based purchase flow is supported (no legacy/one-step purchase)
+- Only the session-based purchase flow is supported
 - Coin breakdown is always shown in plain English
 
