@@ -114,8 +114,8 @@ Alternative: Adding New Item
        │ User enters "Juice" (new item)
        ▼
 ┌─────────────────────────────────────────┐
-│       ItemReloader                       │
-│  "Item not found. Enter price in cents:" │
+│   ItemReloader(after taking in quantity)│
+│  "New item ... . Enter price in cents:" │
 └──────┬──────────────────────────────────┘
        │
        │ User enters "175" (€1.75)
@@ -261,47 +261,47 @@ Alternative: Adding New Item
        │
        ▼
 ┌─────────────────────────────────────────┐
-│      ChangeValidator (NEW)               │
+│      ChangeValidator                     │
 │  Checks if €1.00 change can be made      │
 │  Available coins insufficient ✗          │
 └──────┬──────────────────────────────────┘
        │
        ▼
 ┌─────────────────────────────────────────┐
-│    VendingMachine#auto_cancel_with_      │
-│         refund (NEW)                     │
-│  - Cancels session automatically         │
-│  - Returns payment to user               │
-│  - Clears session state                  │
+│    VendingMachine#auto_cancel_with_     │
+│         refund                          │
+│  - Cancels session automatically        │
+│  - Returns payment to user              │
+│  - Clears session state                 │
 └──────┬──────────────────────────────────┘
        │
        ▼
 ┌─────────────────────────────────────────┐
-│         Output to User                   │
-│  "Cannot provide change."                │
-│  "Payment refunded: 1 x €2"              │
-│  "Please try with exact amount."         │
+│         Output to User                  │
+│  "Cannot provide change."               │
+│  "Payment refunded: 1 x €2"             │
+│  "Please try with exact amount."        │
 └──────┬──────────────────────────────────┘
        │
        ▼
 ┌─────────────────────────────────────────┐
-│   PurchaseSessionOrchestrator            │
-│  Recognizes refund message               │
-│  Exits payment loop                      │
+│   PurchaseSessionOrchestrator           │
+│  Recognizes refund message              │
+│  Exits payment loop                     │
 └──────┬──────────────────────────────────┘
        │
        ▼
 ┌─────────────────────────────────────────┐
-│         Main Menu Display                │
-│  Choose an option:                       │
-│  1. Display available items              │
-│  2. Purchase item with session           │
-│  3. Display current balance              │
-│  4. Display machine status               │
-│  5. Reload items                         │
-│  6. Reload change                        │
-│  q. Quit                                 │
-│  Enter your choice: _                    │
+│         Main Menu Display               │
+│  Choose an option:                      │
+│  1. Display available items             │
+│  2. Purchase item with session          │
+│  3. Display current balance             │
+│  4. Display machine status              │
+│  5. Reload items                        │
+│  6. Reload change                       │
+│  q. Quit                                │
+│  Enter your choice: _                   │
 └─────────────────────────────────────────┘
 ```
 
@@ -378,7 +378,7 @@ Alternative: Adding New Item
 
 ## Key Components & Responsibilities
 
-### Component Interaction Map (Updated)
+### Component Interaction Map
 ```
 ┌──────────────────────────────────────────────────────────┐
 │                    VendingMachineCLI                      │
@@ -400,14 +400,14 @@ Alternative: Adding New Item
 │                    VendingMachine                        │
 │  - Core business logic                                   │
 │  - State management (items, balance)                     │
-│  - Auto-cancel with refund (NEW)                         │
+│  - Auto-cancel with refund                               │
 │  - Delegates to specialized components                   │
 └────┬────────┬────────┬────────┬────────┬────────┬──────┘
      │        │        │        │        │        │
      ▼        ▼        ▼        ▼        ▼        ▼
 ┌──────┐ ┌────────┐ ┌──────────┐ ┌────────┐ ┌──────────────┐
 │Items │ │Change  │ │Payment   │ │Session │ │Change        │
-│      │ │        │ │Processor │ │Manager │ │Validator(NEW)│
+│      │ │        │ │Processor │ │Manager │ │Validator     │
 └──────┘ └────────┘ └──────────┘ └────────┘ └──────────────┘
                          │                          │
                          ▼                          ▼
