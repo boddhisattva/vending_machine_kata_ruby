@@ -135,17 +135,28 @@ RSpec.describe PurchaseSessionOrchestrator do
     end
 
     it 'recognizes payment refunded completion message' do
-      allow(vending_machine).to receive(:start_purchase).with('Coke').and_return('Purchase started for Coke')
-      allow(display).to receive(:show_payment_instructions)
-      allow(input_handler).to receive(:get_payment_input).and_return('{100 => 2}')
+      allow(vending_machine).to receive(:start_purchase).with('Coke').and_return('Please insert €1.50 for Coke')
+      allow(display).to receive(:show_payment_instructions) do
+        puts 'Format: Enter payment as a hash of coin denominations in cents'
+        puts 'Example: {100 => 2, 20 => 1} means 2, 1 Euro coins(100 cents is 1 Euro) + 1, 20 cent coin = €2.20'
+        puts 'Available denominations: 1 cent, 2 cent, 5 cent, 10 cent, 20 cent, 50 cent, €1, €2 coins'
+      end
+      allow(input_handler).to receive(:get_payment_input) do
+        puts 'Enter payment hash (or \'cancel\' to cancel): {100=>2}'
+        '{100 => 2}'
+      end
       allow(payment_parser).to receive(:parse).with('{100 => 2}').and_return({ 100 => 2 })
-      allow(vending_machine).to receive(:insert_payment).with({ 100 => 2 }).and_return('Payment refunded: €2.00. Cannot make exact change.')
+      allow(vending_machine).to receive(:insert_payment).with({ 100 => 2 }).and_return('Cannot provide change. Payment refunded: 2 x €1. Please try with exact amount.')
 
       expected_output = [
         'Starting purchase session...',
-        'Purchase started for Coke',
+        'Please insert €1.50 for Coke',
         '',
-        'Payment refunded: €2.00. Cannot make exact change.'
+        'Format: Enter payment as a hash of coin denominations in cents',
+        'Example: {100 => 2, 20 => 1} means 2, 1 Euro coins(100 cents is 1 Euro) + 1, 20 cent coin = €2.20',
+        'Available denominations: 1 cent, 2 cent, 5 cent, 10 cent, 20 cent, 50 cent, €1, €2 coins',
+        'Enter payment hash (or \'cancel\' to cancel): {100=>2}',
+        'Cannot provide change. Payment refunded: 2 x €1. Please try with exact amount.'
       ].join("\n") + "\n"
 
       expect { orchestrator.execute_purchase_for(item) }.to output(expected_output).to_stdout

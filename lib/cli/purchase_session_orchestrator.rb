@@ -60,13 +60,17 @@ class PurchaseSessionOrchestrator
   def insert_payment_and_check_if_complete(payment)
     result = @vending_machine.insert_payment(payment)
     puts result
-    payment_is_complete?(result)
+    payment_is_complete?(result) || payment_change_cannot_be_processed?(result)
   end
 
   def payment_is_complete?(result)
-    result.include?('Payment complete') || 
-    result.include?('Thank you for your purchase') ||
-    result.include?('Payment refunded:')  # Auto-cancel with refund
+    result.include?('Payment complete') ||
+      result.include?('Thank you for your purchase')
+  end
+
+  def payment_change_cannot_be_processed?(result)
+    # Change cannot be processed related Auto-cancel with refund scenario
+    result.include?('Payment refunded:')
   end
 
   def show_payment_error(error)
