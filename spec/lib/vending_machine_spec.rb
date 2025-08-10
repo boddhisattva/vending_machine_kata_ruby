@@ -430,7 +430,7 @@ describe VendingMachine do
 
     it 'handles full happy path: start, insert, complete' do
       start = @machine.start_purchase('Coke')
-      expect(start).to include('Please insert 150 cents')
+      expect(start).to include('Please insert €1.50')
       @machine.instance_variable_get(:@current_session_id)
       pay1 = @machine.insert_payment({ 100 => 1 })
       expect(pay1).to include('Please insert 50 more cents')

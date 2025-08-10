@@ -12,7 +12,7 @@ describe SingleUserSessionManager do
   it 'starts a session and returns correct info' do
     result = @manager.start_session(@item)
     expect(result[:success]).to be true
-    expect(result[:message]).to include('Please insert 150 cents')
+    expect(result[:message]).to include('Please insert €1.50')
     expect(result[:session_id]).not_to be_nil
   end
 
@@ -39,5 +39,13 @@ describe SingleUserSessionManager do
     result = @manager.add_payment('wrong_id', { 100 => 1 })
     expect(result[:success]).to be false
     expect(result[:message]).to eq('No active session')
+  end
+
+  it 'formats price in cents for items under 100 cents' do
+    cheap_item = Item.new('Gum', 75, 1)
+    result = @manager.start_session(cheap_item)
+    expect(result[:success]).to be true
+    expect(result[:message]).to include('Please insert 75 cents')
+    expect(result[:message]).to include('for Gum')
   end
 end

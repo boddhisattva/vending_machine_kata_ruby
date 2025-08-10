@@ -1,17 +1,20 @@
 require 'securerandom'
 require_relative 'payment_session'
 require_relative 'change'
+require_relative 'cli/currency_formatter'
 
 class SingleUserSessionManager < SessionManager
   def initialize
     @current_session = nil
+    @currency_formatter = CurrencyFormatter.new
   end
 
   def start_session(item)
     @current_session = PaymentSession.new(item)
+    price_display = format_price_for_payment_message(item.price)
     {
       success: true,
-      message: "Please insert #{item.price} cents for #{item.name}",
+      message: "Please insert #{price_display} for #{item.name}",
       session_id: @current_session.id
     }
   end
@@ -72,6 +75,14 @@ class SingleUserSessionManager < SessionManager
   attr_reader :current_session
 
   private
+
+  def format_price_for_payment_message(price_in_cents)
+    if price_in_cents >= 100
+      @currency_formatter.format_amount(price_in_cents)
+    else
+      "#{price_in_cents} cents"
+    end
+  end
 
   def validate_payment_denominations(payment)
     invalid_denominations = payment.keys - Change::ACCEPTABLE_COINS
