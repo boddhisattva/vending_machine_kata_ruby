@@ -30,7 +30,7 @@
 ┌─────────────────────────────────────────┐
 │      SessionManager                      │
 │  Creates purchase session for Chips      │
-│  "Please insert 100 cents for Chips"     │
+│  "Please insert €1.00 for Chips"         │
 └──────┬──────────────────────────────────┘
        │
        │ User enters {200=>1} (€2.00)
@@ -191,7 +191,7 @@ Alternative: Adding New Item
        ▼
 ┌─────────────────────────────────────────┐
 │      SessionManager                      │
-│  "Please insert 150 cents for Coke"      │
+│  "Please insert €1.50 for Coke"          │
 └──────┬──────────────────────────────────┘
        │
        │ User enters {100=>1} (€1.00)
@@ -247,7 +247,7 @@ Alternative: Adding New Item
        ▼
 ┌─────────────────────────────────────────┐
 │      SessionManager                      │
-│  "Please insert 100 cents for Chips"     │
+│  "Please insert €1.00 for Chips"         │
 └──────┬──────────────────────────────────┘
        │
        │ User enters {200=>1} (€2.00)
@@ -332,7 +332,9 @@ Alternative: Adding New Item
 │         Output to User                   │
 │  "Error: Invalid coin denominations"     │
 │  "25 cent coins are not accepted"        │
-│  "Acceptable: 1,2,5,10,20,50,100,200"   │
+│  "Available denominations:               │
+│   1 cent, 2 cent, 5 cent, 10 cent,      │
+│   20 cent, 50 cent, €1, €2 coins"       │
 │  "Session remains active"                │
 └──────┬──────────────────────────────────┘
        │
