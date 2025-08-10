@@ -5,8 +5,8 @@ require_relative '../../../lib/cli/menu_router'
 
 RSpec.describe MenuRouter do
   let(:display) { double('VendingMachineDisplay') }
-  let(:item_reloader) { double('ItemReloader') }
-  let(:change_reloader) { double('ChangeReloader') }
+  let(:item_reloader) { double('ItemReloadHandler') }
+  let(:change_reloader) { double('ChangeReloadHandler') }
   let(:purchase_executor) { double('PurchaseExecutor') }
 
   let(:router) do

@@ -3,7 +3,8 @@
 require_relative 'payment_processor'
 require_relative 'session_manager'
 require_relative 'single_user_session_manager'
-require_relative 'reload_manager'
+require_relative 'item_reloader'
+require_relative 'change_reloader'
 require_relative 'change_validator'
 
 # Vending machine class to handle item purchases and change
@@ -13,12 +14,13 @@ class VendingMachine
 
   def initialize(items, balance, payment_processor = PaymentProcessor.new,
                  session_manager = SingleUserSessionManager.new,
-                 reload_manager = ReloadManager.new)
+                 item_reloader = nil, change_reloader = nil)
     @items = items
     @balance = balance
     @payment_processor = payment_processor
     @session_manager = session_manager
-    @reload_manager = reload_manager
+    @item_reloader = item_reloader || ItemReloader.new
+    @change_reloader = change_reloader || ChangeReloader.new
     @change_validator = ChangeValidator.new
     @current_session_id = nil
     @items_index = build_items_index
@@ -112,12 +114,12 @@ class VendingMachine
   end
 
   def reload_change(coins_to_add)
-    message, @balance = @reload_manager.reload_change(@balance, coins_to_add)
+    message, @balance = @change_reloader.reload_change(@balance, coins_to_add)
     message
   end
 
   def reload_item(item_name, quantity, price = nil)
-    message, @items = @reload_manager.reload_item(@items, @items_index, item_name, quantity, price)
+    message, @items = @item_reloader.reload_item(@items, @items_index, item_name, quantity, price)
     rebuild_items_index # Rebuild index after items change
     message
   end

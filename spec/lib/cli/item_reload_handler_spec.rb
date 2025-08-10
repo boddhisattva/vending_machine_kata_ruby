@@ -1,7 +1,7 @@
 require 'spec_helper'
-require_relative '../../../lib/cli/item_reloader'
+require_relative '../../../lib/cli/item_reload_handler'
 
-RSpec.describe ItemReloader do
+RSpec.describe ItemReloadHandler do
   let(:vending_machine) { double('VendingMachine') }
   let(:display) { double('VendingMachineDisplay') }
   let(:input_handler) { double('UserInputHandler') }
