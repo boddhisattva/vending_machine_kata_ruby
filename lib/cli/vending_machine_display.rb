@@ -36,13 +36,6 @@ class VendingMachineDisplay
     puts "Coins: #{@vending_machine.balance_in_english}"
   end
 
-  def show_change_return_info
-    puts "\n=== Return Change ==="
-    puts 'Note: Change is automatically returned after each purchase.'
-    puts "Available change in machine: #{@currency_formatter.format_amount(@vending_machine.available_change)}"
-    puts "Coins: #{@vending_machine.balance_in_english}"
-  end
-
   def show_machine_status
     puts "\n=== Machine Status ==="
     puts "Available change: #{@currency_formatter.format_amount(@vending_machine.available_change)}"

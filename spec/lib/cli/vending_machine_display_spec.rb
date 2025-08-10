@@ -75,23 +75,6 @@ RSpec.describe VendingMachineDisplay do
     end
   end
 
-  describe '#show_change_return_info' do
-    it 'displays change return information with current machine balance' do
-      allow(vending_machine).to receive(:available_change).and_return(850)
-      allow(vending_machine).to receive(:balance_in_english).and_return('2x €2, 1x €1, 6x 50c')
-      allow(currency_formatter).to receive(:format_amount).with(850).and_return('€8.50')
-
-      expected_output = [
-        "\n=== Return Change ===",
-        'Note: Change is automatically returned after each purchase.',
-        'Available change in machine: €8.50',
-        "Coins: 2x €2, 1x €1, 6x 50c\n"
-      ].join("\n")
-
-      expect { display.show_change_return_info }.to output(expected_output).to_stdout
-    end
-  end
-
   describe '#show_machine_status' do
     it 'displays complete machine status including balance and inventory' do
       allow(vending_machine).to receive(:available_change).and_return(850)
