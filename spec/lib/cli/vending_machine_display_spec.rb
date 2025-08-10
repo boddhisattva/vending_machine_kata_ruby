@@ -62,13 +62,13 @@ RSpec.describe VendingMachineDisplay do
   describe '#show_current_balance' do
     it 'displays balance with formatted currency and coin details' do
       allow(vending_machine).to receive(:available_change).and_return(850)
-      allow(vending_machine).to receive(:balance_in_english).and_return('2x €2, 1x €1, 6x 50c')
+      allow(vending_machine).to receive(:balance_in_english).and_return('2 2 Euro coins, 1 1 Euro coin, 6 50-cent coins')
       allow(currency_formatter).to receive(:format_amount).with(850).and_return('€8.50')
 
       expected_output = [
         "\n=== Current Balance ===",
         'Available change: €8.50',
-        "Coins: 2x €2, 1x €1, 6x 50c\n"
+        "Coins: 2 2 Euro coins, 1 1 Euro coin, 6 50-cent coins\n"
       ].join("\n")
 
       expect { display.show_current_balance }.to output(expected_output).to_stdout
@@ -78,14 +78,14 @@ RSpec.describe VendingMachineDisplay do
   describe '#show_machine_status' do
     it 'displays complete machine status including balance and inventory' do
       allow(vending_machine).to receive(:available_change).and_return(850)
-      allow(vending_machine).to receive(:balance_in_english).and_return('2x €2, 1x €1, 6x 50c')
+      allow(vending_machine).to receive(:balance_in_english).and_return('2 2 Euro coins, 1 1 Euro coin, 6 50-cent coins')
       allow(vending_machine).to receive(:items).and_return(items)
       allow(currency_formatter).to receive(:format_amount).with(850).and_return('€8.50')
 
       expected_output = [
         "\n=== Machine Status ===",
         'Available change: €8.50',
-        'Coins: 2x €2, 1x €1, 6x 50c',
+        'Coins: 2 2 Euro coins, 1 1 Euro coin, 6 50-cent coins',
         '',
         'Items in stock:',
         '  Coke: 5 units',
