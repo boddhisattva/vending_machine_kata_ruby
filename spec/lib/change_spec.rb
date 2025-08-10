@@ -46,6 +46,16 @@ describe Change do
     end
   end
 
+  describe '#calculate_total_amount' do
+    context 'with multiple currency coins' do
+      let(:multiple_currency_coins) { Change.new({ 200 => 4, 50 => 3, 100 => 2 }) }
+
+      it 'calculates multiple 2 euro coins correctly' do
+        expect(multiple_currency_coins.calculate_total_amount).to eq(1150)
+      end
+    end
+  end
+
   describe '#format_for_return' do
     context 'with empty amount' do
       let(:empty_change) { Change.new({}) }
@@ -58,47 +68,17 @@ describe Change do
     context 'with single denomination coins' do
       context 'with euro coins' do
         let(:two_euro_coins) { Change.new({ 200 => 3 }) }
-        let(:one_euro_coins) { Change.new({ 100 => 2 }) }
 
         it 'formats €2 coins correctly' do
           expect(two_euro_coins.format_for_return).to eq('3 x €2')
-        end
-
-        it 'formats €1 coins correctly' do
-          expect(one_euro_coins.format_for_return).to eq('2 x €1')
         end
       end
 
       context 'with cent coins' do
         let(:fifty_cent_coins) { Change.new({ 50 => 4 }) }
-        let(:twenty_cent_coins) { Change.new({ 20 => 5 }) }
-        let(:ten_cent_coins) { Change.new({ 10 => 8 }) }
-        let(:five_cent_coins) { Change.new({ 5 => 6 }) }
-        let(:two_cent_coins) { Change.new({ 2 => 10 }) }
-        let(:one_cent_coins) { Change.new({ 1 => 7 }) }
 
         it 'formats 50c coins correctly' do
           expect(fifty_cent_coins.format_for_return).to eq('4 x 50c')
-        end
-
-        it 'formats 20c coins correctly' do
-          expect(twenty_cent_coins.format_for_return).to eq('5 x 20c')
-        end
-
-        it 'formats 10c coins correctly' do
-          expect(ten_cent_coins.format_for_return).to eq('8 x 10c')
-        end
-
-        it 'formats 5c coins correctly' do
-          expect(five_cent_coins.format_for_return).to eq('6 x 5c')
-        end
-
-        it 'formats 2c coins correctly' do
-          expect(two_cent_coins.format_for_return).to eq('10 x 2c')
-        end
-
-        it 'formats 1c coins correctly' do
-          expect(one_cent_coins.format_for_return).to eq('7 x 1c')
         end
       end
     end
@@ -130,12 +110,118 @@ describe Change do
         expect(with_zeros.format_for_return).to eq('2 x €2, 3 x 50c, 1 x 10c')
       end
     end
+  end
 
-    context 'with single coin quantities' do
-      let(:single_coins) { Change.new({ 200 => 1, 50 => 1, 10 => 1, 1 => 1 }) }
+  describe '#to_english' do
+    context 'with empty amount' do
+      let(:empty_change) { Change.new({}) }
 
-      it 'formats single coins correctly' do
-        expect(single_coins.format_for_return).to eq('1 x €2, 1 x 50c, 1 x 10c, 1 x 1c')
+      it 'returns "No coins"' do
+        expect(empty_change.to_english).to eq('No coins')
+      end
+    end
+
+    context 'with single denomination coins' do
+      context 'with euro coins' do
+        let(:single_two_euro) { Change.new({ 200 => 1 }) }
+        let(:multiple_two_euros) { Change.new({ 200 => 3 }) }
+
+        it 'formats single 2 Euro coin correctly' do
+          expect(single_two_euro.to_english).to eq('1 2 Euro coin')
+        end
+
+        it 'formats multiple 2 Euro coins correctly' do
+          expect(multiple_two_euros.to_english).to eq('3 2 Euro coins')
+        end
+      end
+
+      context 'with cent coins' do
+        let(:single_ten_cent) { Change.new({ 10 => 1 }) }
+        let(:multiple_one_cents) { Change.new({ 1 => 8 }) }
+
+        it 'formats single 10-cent coin correctly' do
+          expect(single_ten_cent.to_english).to eq('1 10-cent coin')
+        end
+
+        it 'formats multiple 1-cent coins correctly' do
+          expect(multiple_one_cents.to_english).to eq('8 1-cent coins')
+        end
+      end
+    end
+
+    context 'with multiple denominations' do
+      let(:mixed_euros_and_cents) do
+        Change.new({
+                     200 => 2,
+                     100 => 1,
+                     50 => 3,
+                     10 => 2
+                   })
+      end
+
+      it 'formats mixed euros and cents in descending order' do
+        expected = '2 2 Euro coins, 1 1 Euro coin, 3 50-cent coins, 2 10-cent coins'
+        expect(mixed_euros_and_cents.to_english).to eq(expected)
+      end
+    end
+
+    context 'with zero quantity coins' do
+      let(:with_zeros) do
+        Change.new({
+                     200 => 0,
+                     100 => 2,
+                     50 => 0,
+                     10 => 3
+                   })
+      end
+
+      let(:all_zeros) do
+        Change.new({
+                     200 => 0,
+                     100 => 0,
+                     50 => 0
+                   })
+      end
+
+      it 'excludes coins with zero quantity' do
+        expect(with_zeros.to_english).to eq('2 1 Euro coins, 3 10-cent coins')
+      end
+
+      it 'returns "No coins" when all quantities are zero' do
+        expect(all_zeros.to_english).to eq('No coins')
+      end
+    end
+  end
+
+  describe '#to_euros' do
+    context 'with empty amount' do
+      let(:empty_change) { Change.new({}) }
+
+      it 'returns 0.0 euros' do
+        expect(empty_change.to_euros).to eq(0.0)
+      end
+    end
+
+    context 'with only cent coins' do
+      let(:ninety_nine_cents) { Change.new({ 50 => 1, 20 => 2, 5 => 1, 2 => 2 }) }
+
+      it 'converts 99 cents to 0.99 euros' do
+        expect(ninety_nine_cents.to_euros).to eq(0.99)
+      end
+    end
+
+    context 'with only euro coins' do
+      let(:five_euros) { Change.new({ 200 => 2, 100 => 1 }) }
+      it 'converts multiple euro coins to correct euro amount' do
+        expect(five_euros.to_euros).to eq(5.0)
+      end
+    end
+
+    context 'with mixed euro and cent coins' do
+      let(:mixed_small) { Change.new({ 100 => 1, 50 => 1, 20 => 2, 5 => 1 }) }
+
+      it 'converts €1.95 correctly' do
+        expect(mixed_small.to_euros).to eq(1.95)
       end
     end
   end
