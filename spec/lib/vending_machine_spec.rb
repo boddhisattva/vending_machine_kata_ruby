@@ -136,15 +136,15 @@ describe VendingMachine do
       end
     end
 
-    context 'integration with ReloadManager' do
-      it 'delegates to ReloadManager for processing' do
-        reload_manager = instance_double('ReloadManager')
-        allow(reload_manager).to receive(:reload_item).and_return(['Success message', items])
+    context 'integration with ItemReloader' do
+      it 'delegates to ItemReloader for processing' do
+        item_reloader = instance_double('ItemReloader')
+        allow(item_reloader).to receive(:reload_item).and_return(['Success message', items])
 
         custom_machine = VendingMachine.new(items, balance, PaymentProcessor.new,
-                                            SingleUserSessionManager.new, reload_manager)
+                                            SingleUserSessionManager.new, item_reloader, nil)
 
-        expect(reload_manager).to receive(:reload_item).with(items, hash_including('Coke' => items[0]), 'Coke', 5, nil)
+        expect(item_reloader).to receive(:reload_item).with(items, hash_including('Coke' => items[0]), 'Coke', 5, nil)
         custom_machine.reload_item('Coke', 5)
       end
     end
@@ -588,6 +588,19 @@ describe VendingMachine do
     it 'returns error for non-hash input' do
       result = @machine.reload_change('invalid')
       expect(result).to eq('Invalid input. Please provide a hash of coins.')
+    end
+
+    context 'integration with ChangeReloader' do
+      it 'delegates to ChangeReloader for processing' do
+        change_reloader = instance_double('ChangeReloader')
+        allow(change_reloader).to receive(:reload_change).and_return(['Success message', @balance])
+
+        custom_machine = VendingMachine.new(@items, @balance, PaymentProcessor.new,
+                                            SingleUserSessionManager.new, nil, change_reloader)
+
+        expect(change_reloader).to receive(:reload_change).with(@balance, { 100 => 5 })
+        custom_machine.reload_change({ 100 => 5 })
+      end
     end
   end
 

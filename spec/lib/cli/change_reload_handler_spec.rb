@@ -1,7 +1,7 @@
 require 'spec_helper'
-require_relative '../../../lib/cli/change_reloader'
+require_relative '../../../lib/cli/change_reload_handler'
 
-RSpec.describe ChangeReloader do
+RSpec.describe ChangeReloadHandler do
   let(:vending_machine) { double('VendingMachine') }
   let(:currency_formatter) { double('CurrencyFormatter') }
   let(:payment_parser) { double('PaymentInputParser') }

@@ -1,4 +1,4 @@
-class ChangeReloader
+class ChangeReloadHandler
   def initialize(vending_machine, currency_formatter, payment_parser, input_handler)
     @vending_machine = vending_machine
     @currency_formatter = currency_formatter
