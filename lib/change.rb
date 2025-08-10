@@ -18,30 +18,10 @@ class Change
   end
 
   def to_english
-    return 'No coins' if amount.empty?
+    return 'No coins' if no_coins?
 
-    parts = []
-    # Sort by denomination (largest first) for better readability
-    sorted_amount = amount.sort_by { |denom, _| -denom }
-
-    sorted_amount.each do |denomination, quantity|
-      next if quantity == 0
-
-      # Round to integer for display to avoid floating-point precision issues
-      display_quantity = quantity.to_i
-      next if display_quantity == 0
-
-      coin_name = coin_name_for_denomination(denomination)
-      if display_quantity == 1
-        parts << "1 #{coin_name}"
-      else
-        # Simple pluralization: add 's' for plural
-        plural_name = coin_name.end_with?('y') ? coin_name.sub(/y$/, 'ies') : coin_name + 's'
-        parts << "#{display_quantity} #{plural_name}"
-      end
-    end
-
-    parts.empty? ? 'No coins' : parts.join(', ')
+    coin_descriptions = build_coin_descriptions
+    coin_descriptions.empty? ? 'No coins' : coin_descriptions.join(', ')
   end
 
   def to_euros
@@ -51,23 +31,79 @@ class Change
   end
 
   def format_for_return
-    return '' if amount.empty?
+    return '' if no_coins?
 
-    coins = amount.sort_by { |denom, _| -denom }.map do |denom, count|
-      next if count <= 0
-
-      if denom >= 100
-        euro_value = denom / 100
-        "#{count} x €#{euro_value}"
-      else
-        "#{count} x #{denom}c"
-      end
-    end.compact
-
-    coins.join(', ')
+    formatted_coins = build_return_format_descriptions
+    formatted_coins.join(', ')
   end
 
   private
+
+  def no_coins?
+    amount.empty?
+  end
+
+  def build_coin_descriptions
+    sorted_coins_by_denomination
+      .filter_map { |denomination, quantity| format_coin_description(denomination, quantity) }
+  end
+
+  def sorted_coins_by_denomination
+    amount.sort_by { |denomination, _| -denomination }
+  end
+
+  def format_coin_description(denomination, quantity)
+    display_quantity = prepare_display_quantity(quantity)
+    return nil if display_quantity == 0
+
+    coin_name = coin_name_for_denomination(denomination)
+    pluralized_description(display_quantity, coin_name)
+  end
+
+  def prepare_display_quantity(quantity)
+    quantity.to_i
+  end
+
+  def pluralized_description(quantity, coin_name)
+    if quantity == 1
+      "1 #{coin_name}"
+    else
+      "#{quantity} #{pluralize_coin_name(coin_name)}"
+    end
+  end
+
+  def pluralize_coin_name(coin_name)
+    coin_name.end_with?('y') ? coin_name.sub(/y$/, 'ies') : coin_name + 's'
+  end
+
+  def build_return_format_descriptions
+    sorted_coins_by_denomination
+      .filter_map { |denomination, count| format_return_coin(denomination, count) }
+  end
+
+  def format_return_coin(denomination, count)
+    return nil if count <= 0
+
+    formatted_denomination = format_denomination_for_return(denomination)
+    "#{count} x #{formatted_denomination}"
+  end
+
+  def format_denomination_for_return(denomination)
+    euro_denomination?(denomination) ? format_as_euros(denomination) : format_as_cents(denomination)
+  end
+
+  def euro_denomination?(denomination)
+    denomination >= 100
+  end
+
+  def format_as_euros(denomination)
+    euro_value = denomination / 100
+    "€#{euro_value}"
+  end
+
+  def format_as_cents(denomination)
+    "#{denomination}c"
+  end
 
   def coins_in_acceptable_denominations?(amount)
     amount.keys.all? { |coin_denomination| ACCEPTABLE_COINS.include?(coin_denomination) }
