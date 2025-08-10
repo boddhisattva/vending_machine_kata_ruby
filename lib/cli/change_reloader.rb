@@ -28,7 +28,7 @@ class ChangeReloader
   def show_coin_entry_instructions
     puts 'Format: Enter coins as a hash of denominations in cents'
     puts 'Example: {100 => 5, 50 => 10} means 5 €1 coins and 10 50-cent coins'
-    puts 'Available denominations: 1, 2, 5, 10, 20, 50, 100, 200 cents'
+    puts 'Available denominations: 1 cent, 2 cent, 5 cent, 10 cent, 20 cent, 50 cent, €1, €2 coins'
   end
 
   def get_coins_from_user

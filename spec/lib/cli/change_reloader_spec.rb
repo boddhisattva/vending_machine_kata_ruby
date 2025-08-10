@@ -30,7 +30,7 @@ RSpec.describe ChangeReloader do
           '',
           'Format: Enter coins as a hash of denominations in cents',
           'Example: {100 => 5, 50 => 10} means 5 €1 coins and 10 50-cent coins',
-          'Available denominations: 1, 2, 5, 10, 20, 50, 100, 200 cents',
+          'Available denominations: 1 cent, 2 cent, 5 cent, 10 cent, 20 cent, 50 cent, €1, €2 coins',
           "Enter coins to add: Successfully added coins: 2 €1 coins, 3 50-cent coins. Total balance: €14.22\n"
         ].join("\n")
 
@@ -50,7 +50,7 @@ RSpec.describe ChangeReloader do
           '',
           'Format: Enter coins as a hash of denominations in cents',
           'Example: {100 => 5, 50 => 10} means 5 €1 coins and 10 50-cent coins',
-          'Available denominations: 1, 2, 5, 10, 20, 50, 100, 200 cents',
+          'Available denominations: 1 cent, 2 cent, 5 cent, 10 cent, 20 cent, 50 cent, €1, €2 coins',
           "Enter coins to add: Successfully added coins: No coins. Total balance: €10.72\n"
         ].join("\n")
 
@@ -70,7 +70,7 @@ RSpec.describe ChangeReloader do
           '',
           'Format: Enter coins as a hash of denominations in cents',
           'Example: {100 => 5, 50 => 10} means 5 €1 coins and 10 50-cent coins',
-          'Available denominations: 1, 2, 5, 10, 20, 50, 100, 200 cents',
+          'Available denominations: 1 cent, 2 cent, 5 cent, 10 cent, 20 cent, 50 cent, €1, €2 coins',
           "Enter coins to add: Invalid format. Please use a hash format like {100 => 5, 50 => 10}\n"
         ].join("\n")
 
@@ -89,7 +89,7 @@ RSpec.describe ChangeReloader do
           '',
           'Format: Enter coins as a hash of denominations in cents',
           'Example: {100 => 5, 50 => 10} means 5 €1 coins and 10 50-cent coins',
-          'Available denominations: 1, 2, 5, 10, 20, 50, 100, 200 cents',
+          'Available denominations: 1 cent, 2 cent, 5 cent, 10 cent, 20 cent, 50 cent, €1, €2 coins',
           'Enter coins to add: '
         ].join("\n")
 

@@ -118,7 +118,7 @@ RSpec.describe VendingMachineDisplay do
       expected_output = [
         'Format: Enter payment as a hash of coin denominations in cents',
         'Example: {100 => 2, 20 => 1} means 2, 1 Euro coins(100 cents is 1 Euro) + 1, 20 cent coin = €2.20',
-        'Available denominations: 1, 2, 5, 10, 20, 50, 100, 200 cents'
+        'Available denominations: 1 cent, 2 cent, 5 cent, 10 cent, 20 cent, 50 cent, €1, €2 coins'
       ].join("\n") + "\n"
 
       expect { display.show_payment_instructions }.to output(expected_output).to_stdout
