@@ -36,21 +36,17 @@ describe ChangeReloader do
     end
 
     context 'validation errors' do
-      it 'returns error for invalid denomination' do
-        result, returned_balance = reloader.reload_change(balance, { 25 => 5 })
-        expect(result).to eq('Invalid coin denominations: [25]')
-        expect(returned_balance).to eq(balance)
-      end
+      let(:mock_validator) { double('ReloadValidator') }
+      let(:reloader_with_mock) { ChangeReloader.new(mock_validator) }
 
-      it 'returns error for non-hash input' do
-        result, returned_balance = reloader.reload_change(balance, 'invalid')
-        expect(result).to eq('Invalid input. Please provide a hash of coins.')
-        expect(returned_balance).to eq(balance)
-      end
+      it 'returns error when validator returns an error message' do
+        error_message = 'Invalid coin denominations: [25]'
+        expect(mock_validator).to receive(:validate_coin_reload)
+          .with({ 25 => 5 })
+          .and_return(error_message)
 
-      it 'returns error for negative quantity' do
-        result, returned_balance = reloader.reload_change(balance, { 100 => -5 })
-        expect(result).to eq('Invalid input. All quantities must be positive.')
+        result, returned_balance = reloader_with_mock.reload_change(balance, { 25 => 5 })
+        expect(result).to eq(error_message)
         expect(returned_balance).to eq(balance)
       end
     end
