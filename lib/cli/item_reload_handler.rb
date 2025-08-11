@@ -5,7 +5,7 @@ class ItemReloadHandler
     @input_handler = input_handler
   end
 
-  def reload_items_for_machine
+  def load_items_for_machine
     show_current_stock_status
 
     item_name = ask_for_item_name
@@ -52,7 +52,7 @@ class ItemReloadHandler
   end
 
   def reload_existing_item(item_name, quantity)
-    result = @vending_machine.reload_item(item_name, quantity)
+    result = @vending_machine.load_item(item_name, quantity)
     puts result
   end
 
@@ -60,7 +60,7 @@ class ItemReloadHandler
     price = ask_for_item_price
     return unless price
 
-    result = @vending_machine.reload_item(item_name, quantity, price)
+    result = @vending_machine.load_item(item_name, quantity, price)
     puts result
   end
 

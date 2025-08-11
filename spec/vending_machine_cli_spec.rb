@@ -43,10 +43,10 @@ describe VendingMachineCLI do
       end
     end
 
-    # Helper method to simulate a reload items session
-    def simulate_reload_items(cli, item_name, quantity, price = nil)
+    # Helper method to simulate a load items session
+    def simulate_load_items(cli, item_name, quantity, price = nil)
       vending_machine = cli.instance_variable_get(:@vending_machine)
-      vending_machine.reload_item(item_name, quantity, price)
+      vending_machine.load_item(item_name, quantity, price)
     end
 
     # Helper method to simulate a reload change session
@@ -153,7 +153,7 @@ describe VendingMachineCLI do
         expect(chips_item.quantity).to eq(2)
 
         # Step 2: Reload Chips with 5 more units
-        reload_result = vending_machine.reload_item('Chips', 5)
+        reload_result = vending_machine.load_item('Chips', 5)
 
         # Verify reload message
         expect(reload_result).to eq('Successfully added 5 units to Chips. New quantity: 7')
@@ -191,8 +191,8 @@ describe VendingMachineCLI do
         expect(water_initial).to eq(2)
 
         # Simulate multiple reloads
-        coke_result = simulate_reload_items(cli, 'Coke', 15)
-        water_result = simulate_reload_items(cli, 'Water', 8)
+        coke_result = simulate_load_items(cli, 'Coke', 15)
+        water_result = simulate_load_items(cli, 'Water', 8)
 
         # Verify reload messages
         expect(coke_result).to eq('Successfully added 15 units to Coke. New quantity: 20')
@@ -216,7 +216,7 @@ describe VendingMachineCLI do
           expect(initial_item_count).to eq(4)
 
           # Simulate reload with new item
-          reload_result = simulate_reload_items(cli, 'Energy Bar', 25, 350)
+          reload_result = simulate_load_items(cli, 'Energy Bar', 25, 350)
 
           # Verify new item was added
           expect(reload_result).to eq('Successfully added new item: Energy Bar - €3.50 (25 units)')
@@ -251,7 +251,7 @@ describe VendingMachineCLI do
             expect(vending_machine.items.length).to eq(4)
 
             # Step 2: Reload with new item - Lindt Chocolate
-            reload_result = vending_machine.reload_item('Lindt Chocolate', 5, 600)
+            reload_result = vending_machine.load_item('Lindt Chocolate', 5, 600)
 
             # Verify reload message for new item
             expect(reload_result).to eq('Successfully added new item: Lindt Chocolate - €6.00 (5 units)')

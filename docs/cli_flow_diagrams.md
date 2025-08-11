@@ -68,18 +68,18 @@
 └─────────────────────────────────────────┘
 ```
 
-## 2. Reload Item Flow
+## 2. Load Item Flow
 
 ```
 ┌─────────────┐
 │   User      │
 └──────┬──────┘
        │
-       │ Selects "5" (Reload items)
+       │ Selects "5" (Load items)
        ▼
 ┌─────────────────────────────────────────┐
-│         ItemReloader                     │
-│  "=== Reload Items ==="                  │
+│         ItemLoader                       │
+│  "=== Reload or Add New Items ==="       │
 │  Shows current stock:                    │
 │  - Coke: 5 units                        │
 │  - Chips: 2 units                       │
@@ -90,14 +90,14 @@
        │ User enters "Chips" (existing item)
        ▼
 ┌─────────────────────────────────────────┐
-│       ItemReloader                       │
+│       ItemLoader                         │
 │  "Enter quantity to add:"                │
 └──────┬──────────────────────────────────┘
        │
        │ User enters "10"
        ▼
 ┌─────────────────────────────────────────┐
-│      VendingMachine#reload_item          │
+│      VendingMachine#load_item            │
 │  - Finds existing item "Chips"           │
 │  - Updates quantity: 2 + 10 = 12         │
 └──────┬──────────────────────────────────┘
@@ -114,14 +114,14 @@ Alternative: Adding New Item
        │ User enters "Juice" (new item)
        ▼
 ┌─────────────────────────────────────────┐
-│   ItemReloader(after taking in quantity)│
+│   ItemLoader(after taking in quantity)  │
 │  "New item ... . Enter price in cents:" │
 └──────┬──────────────────────────────────┘
        │
        │ User enters "175" (€1.75)
        ▼
 ┌─────────────────────────────────────────┐
-│      VendingMachine#reload_item          │
+│      VendingMachine#load_item            │
 │  - Creates new Item("Juice", 175, 5)     │
 │  - Adds to items collection              │
 └──────┬──────────────────────────────────┘
@@ -298,7 +298,7 @@ Alternative: Adding New Item
 │  2. Purchase item with session          │
 │  3. Display current balance             │
 │  4. Display machine status              │
-│  5. Reload items                        │
+│  5. Load items                          │
 │  6. Reload change                       │
 │  q. Quit                                │
 │  Enter your choice: _                   │
@@ -391,7 +391,7 @@ Alternative: Adding New Item
              │                             │
              ▼                             ▼
 ┌─────────────────────────┐   ┌─────────────────────────┐
-│   PurchaseOrchestrator  │   │    ItemReloader/        │
+│   PurchaseOrchestrator  │   │    ItemLoader/          │
 │   - Purchase flow       │   │    ChangeReloader       │
 │   - Session management  │   │    - Reload flows       │
 │   - Auto-cancel detect  │   │                         │
