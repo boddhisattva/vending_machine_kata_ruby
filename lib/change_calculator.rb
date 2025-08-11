@@ -5,10 +5,10 @@ require_relative 'change'
 # Handles change calculation logic
 class ChangeCalculator
   # Returns [change_given_hash, new_balance_hash] or [nil, original_balance] if cannot make change
-  def make_change(balance, change_amount)
-    return [{}, balance] if change_amount == 0
+  def make_change(balance, change_amount_needed)
+    return [{}, balance] if change_amount_needed == 0
 
-    result = calculate_optimal_change(balance.dup, change_amount)
+    result = calculate_optimal_change(balance.dup, change_amount_needed)
 
     if change_was_successful?(result[:remaining])
       prepare_successful_result(result[:change_given], result[:new_balance])
@@ -24,7 +24,7 @@ class ChangeCalculator
 
   private
 
-  # Uses greedy algorithm to calculate optimal change
+  # Uses greedy algorithm(choosing the largest denomination first) to calculate optimal change
   def calculate_optimal_change(balance, amount)
     remaining = amount
     change_given = {}
@@ -64,29 +64,24 @@ class ChangeCalculator
     [available_coins, needed_coins].min
   end
 
-  # Updates the change_given and balance for coins used
   def apply_coin_usage(denomination, coins_used, change_given, balance)
     change_given[denomination] = coins_used
     balance[denomination] -= coins_used
   end
 
-  # Calculates new remaining amount after using coins
   def update_remaining_amount(current_remaining, denomination, coins_used)
     current_remaining - (denomination * coins_used)
   end
 
-  # Checks if exact change was made
   def change_was_successful?(remaining)
     remaining == 0
   end
 
-  # Prepares the success result with cleaned balance
   def prepare_successful_result(change_given, new_balance)
     cleaned_balance = remove_zero_quantity_coins(new_balance)
     [change_given, cleaned_balance]
   end
 
-  # Removes coins with zero quantity from balance
   def remove_zero_quantity_coins(balance)
     balance.reject { |_, qty| qty <= 0 }
   end
