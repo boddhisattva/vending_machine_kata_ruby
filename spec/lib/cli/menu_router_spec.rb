@@ -48,7 +48,7 @@ RSpec.describe MenuRouter do
 
     context 'when choice is "5"' do
       it 'reloads items for machine' do
-        expect(item_reloader).to receive(:reload_items_for_machine)
+        expect(item_reloader).to receive(:load_items_for_machine)
         router.route('5')
       end
     end

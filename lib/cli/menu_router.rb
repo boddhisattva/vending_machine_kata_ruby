@@ -19,7 +19,7 @@ class MenuRouter
     when '4'
       @display.show_machine_status
     when '5'
-      @item_reloader.reload_items_for_machine
+      @item_reloader.load_items_for_machine
     when '6'
       @change_reloader.reload_change_for_machine
     when 'q', 'quit', 'exit'

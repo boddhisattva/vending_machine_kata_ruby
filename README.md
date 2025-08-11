@@ -70,7 +70,7 @@ involving the Vending Machine usage including
 
   - MenuRouter: Routes menu choices to appropriate actions
 
-  - ItemReloader: Handles CLI flow for reloading items interactively
+  - ItemLoader: Handles CLI flow for loading items interactively
 
   - ChangeReloader: Handles CLI flow for reloading change interactively
 
@@ -171,3 +171,9 @@ The machine starts with the following coins:
 - Only the session-based purchase flow is supported
 - Coin breakdown is always shown in plain English
 
+## Areas of Improvements
+- Refactor specs further(remove duplicate/unnecessary ones where needed)
+- Refactor existing validation logic across different places/classes to remove duplication where applicable & feasible
+
+### Enhancements/Features to Add
+- Add a more cleaner ability to abort adding a new item(right now we have to give some invalid values while inserting a new item for the menu to reset)
