@@ -1,6 +1,3 @@
-require 'spec_helper'
-require_relative '../../../lib/cli/vending_machine_display'
-require_relative '../../../lib/cli/currency_formatter'
 
 RSpec.describe VendingMachineDisplay do
   let(:vending_machine) { double('VendingMachine') }

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
-require_relative '../../../lib/cli/purchase_executor'
 
 RSpec.describe PurchaseExecutor do
   let(:display) { double('VendingMachineDisplay') }

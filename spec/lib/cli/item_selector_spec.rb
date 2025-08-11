@@ -1,5 +1,3 @@
-require 'spec_helper'
-require_relative '../../../lib/cli/item_selector'
 
 RSpec.describe ItemSelector do
   let(:vending_machine) { double('VendingMachine') }

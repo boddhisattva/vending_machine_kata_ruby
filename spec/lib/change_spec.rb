@@ -1,4 +1,3 @@
-require 'spec_helper'
 
 describe Change do
   let(:balance) { Change.new(balance_coins) }

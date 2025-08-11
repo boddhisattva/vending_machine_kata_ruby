@@ -1,5 +1,3 @@
-require 'spec_helper'
-require_relative '../../../lib/cli/change_reload_handler'
 
 RSpec.describe ChangeReloadHandler do
   let(:vending_machine) { double('VendingMachine') }

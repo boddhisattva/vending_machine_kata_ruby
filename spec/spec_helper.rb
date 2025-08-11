@@ -18,7 +18,7 @@ require 'pry'
 
 PROJECT_ROOT = File.expand_path('..', __dir__)
 
-Dir.glob(File.join(PROJECT_ROOT, 'lib', '*.rb')).each do |file|
+Dir.glob(File.join(PROJECT_ROOT, 'lib', '**', '*.rb')).each do |file|
   require file
 end
 

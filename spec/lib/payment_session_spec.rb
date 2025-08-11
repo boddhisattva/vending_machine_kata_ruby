@@ -1,6 +1,3 @@
-require 'spec_helper'
-require_relative '../../lib/payment_session'
-require_relative '../../lib/item'
 
 describe PaymentSession do
   before do

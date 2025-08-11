@@ -1,4 +1,3 @@
-require 'spec_helper'
 
 describe Item do
   describe '#name and #price' do

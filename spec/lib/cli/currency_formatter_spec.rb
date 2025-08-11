@@ -1,6 +1,3 @@
-require 'spec_helper'
-require_relative '../../../lib/cli/currency_formatter'
-require_relative '../../../lib/item'
 
 RSpec.describe CurrencyFormatter do
   let(:formatter) { described_class.new }

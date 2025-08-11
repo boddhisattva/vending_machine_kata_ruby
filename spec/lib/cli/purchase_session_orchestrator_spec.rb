@@ -1,5 +1,3 @@
-require 'spec_helper'
-require_relative '../../../lib/cli/purchase_session_orchestrator'
 
 RSpec.describe PurchaseSessionOrchestrator do
   let(:vending_machine) { double('VendingMachine') }

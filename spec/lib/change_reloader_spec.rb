@@ -1,7 +1,3 @@
-require 'spec_helper'
-require_relative '../../lib/change_reloader'
-require_relative '../../lib/reload_validator'
-
 describe ChangeReloader do
   let(:reloader) { ChangeReloader.new }
   let(:balance) { Change.new({ 100 => 2, 50 => 2 }) }

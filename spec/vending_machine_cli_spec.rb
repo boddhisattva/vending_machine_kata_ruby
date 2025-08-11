@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative '../bin/vending_machine_cli'
-require_relative '../lib/cli/payment_input_parser'
 
 describe VendingMachineCLI do
   let(:cli) { VendingMachineCLI.new }
@@ -485,58 +484,58 @@ describe VendingMachineCLI do
 
       it 'returns to menu after auto-cancel due to insufficient change (simulated flow)' do
         # Create a machine with limited change (only one €2 coin)
-        limited_balance = { 200 => 1 }  # Only one €2 coin, no smaller denominations
-        items = [Item.new('Coke', 150, 5)]  # €1.50 item
-        
+        limited_balance = { 200 => 1 } # Only one €2 coin, no smaller denominations
+        items = [Item.new('Coke', 150, 5)] # €1.50 item
+
         vending_machine = VendingMachine.new(items, Change.new(limited_balance))
         cli.instance_variable_set(:@vending_machine, vending_machine)
 
         # Capture output to verify menu display
         output_buffer = StringIO.new
         original_stdout = $stdout
-        
+
         begin
           # Redirect stdout to capture output
           $stdout = output_buffer
-          
+
           # Simulate the purchase flow
           vending_machine.start_purchase('Coke')
           result = vending_machine.insert_payment({ 200 => 1 })
-          
+
           # Simulate what the CLI would print after auto-cancel
           puts result
           puts
-          puts "Choose an option:"
-          puts "1. Display available items"
-          puts "2. Purchase item with session"
-          puts "3. Display current balance"
-          puts "4. Display machine status"
-          puts "5. Reload items"
-          puts "6. Reload change"
-          puts "q. Quit"
-          print "Enter your choice: "
-          
+          puts 'Choose an option:'
+          puts '1. Display available items'
+          puts '2. Purchase item with session'
+          puts '3. Display current balance'
+          puts '4. Display machine status'
+          puts '5. Reload items'
+          puts '6. Reload change'
+          puts 'q. Quit'
+          print 'Enter your choice: '
+
           # Get the captured output
           actual_output = output_buffer.string
-          
+
           # Define expected output (no trailing newline after "Enter your choice: ")
           expected_menu_output = "Cannot provide change. Payment refunded: 1 x €2. Please try with exact amount.\n\n" +
-                                "Choose an option:\n" +
-                                "1. Display available items\n" +
-                                "2. Purchase item with session\n" +
-                                "3. Display current balance\n" +
-                                "4. Display machine status\n" +
-                                "5. Reload items\n" +
-                                "6. Reload change\n" +
-                                "q. Quit\n" +
-                                "Enter your choice: "
-          
+                                 "Choose an option:\n" +
+                                 "1. Display available items\n" +
+                                 "2. Purchase item with session\n" +
+                                 "3. Display current balance\n" +
+                                 "4. Display machine status\n" +
+                                 "5. Reload items\n" +
+                                 "6. Reload change\n" +
+                                 "q. Quit\n" +
+                                 'Enter your choice: '
+
           # Verify the output matches expected
           expect(actual_output).to eq(expected_menu_output)
-          
+
           # Also verify the auto-cancel message returned correctly
           expect(result).to eq('Cannot provide change. Payment refunded: 1 x €2. Please try with exact amount.')
-          
+
           # Verify that a new session can be started immediately (menu is available)
           expect { vending_machine.start_purchase('Coke') }.not_to raise_error
         ensure

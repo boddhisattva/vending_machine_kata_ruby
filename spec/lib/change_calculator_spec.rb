@@ -1,4 +1,3 @@
-require 'spec_helper'
 
 describe ChangeCalculator do
   let(:calculator) { ChangeCalculator.new }
