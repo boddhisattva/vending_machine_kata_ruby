@@ -1,5 +1,3 @@
-require 'spec_helper'
-require_relative '../../lib/reload_validator'
 
 describe ReloadValidator do
   let(:validator) { ReloadValidator.new }

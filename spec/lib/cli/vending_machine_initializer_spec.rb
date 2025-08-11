@@ -1,5 +1,3 @@
-require 'spec_helper'
-require_relative '../../../lib/cli/vending_machine_initializer'
 
 RSpec.describe VendingMachineInitializer do
   let(:initializer) { described_class.new }

@@ -1,5 +1,3 @@
-require 'spec_helper'
-require_relative '../../../lib/cli/user_input_handler'
 
 RSpec.describe UserInputHandler do
   let(:handler) { described_class.new }

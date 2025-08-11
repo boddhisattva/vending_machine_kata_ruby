@@ -1,7 +1,3 @@
-require 'spec_helper'
-require_relative '../../lib/payment_processor'
-require_relative '../../lib/item'
-require_relative '../../lib/change'
 
 describe PaymentProcessor do
   before do

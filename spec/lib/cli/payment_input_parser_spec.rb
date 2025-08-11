@@ -1,5 +1,3 @@
-require 'spec_helper'
-require_relative '../../../lib/cli/payment_input_parser'
 
 RSpec.describe PaymentInputParser do
   let(:parser) { described_class.new }

@@ -1,8 +1,3 @@
-require 'spec_helper'
-require_relative '../../lib/single_user_session_manager'
-require_relative '../../lib/payment_session'
-require_relative '../../lib/item'
-
 describe SingleUserSessionManager do
   before do
     @manager = SingleUserSessionManager.new

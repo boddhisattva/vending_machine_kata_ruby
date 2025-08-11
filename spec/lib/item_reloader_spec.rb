@@ -1,6 +1,3 @@
-require 'spec_helper'
-require_relative '../../lib/item_reloader'
-require_relative '../../lib/reload_validator'
 
 describe ItemReloader do
   let(:reloader) { ItemReloader.new }

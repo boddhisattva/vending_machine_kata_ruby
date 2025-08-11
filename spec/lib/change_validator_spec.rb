@@ -1,4 +1,3 @@
-require 'spec_helper'
 
 describe ChangeValidator do
   let(:change_calculator) { instance_double('ChangeCalculator') }

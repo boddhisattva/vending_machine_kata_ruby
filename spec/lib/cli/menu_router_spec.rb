@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
-require_relative '../../../lib/cli/menu_router'
 
 RSpec.describe MenuRouter do
   let(:display) { double('VendingMachineDisplay') }

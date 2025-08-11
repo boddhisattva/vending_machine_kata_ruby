@@ -1,4 +1,3 @@
-require 'spec_helper'
 
 describe PaymentValidator do
   let(:validator) { PaymentValidator.new }

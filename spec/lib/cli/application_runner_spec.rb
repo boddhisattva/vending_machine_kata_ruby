@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
-require_relative '../../../lib/cli/application_runner'
 
 RSpec.describe ApplicationRunner do
   let(:display) { double('VendingMachineDisplay') }
