@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 class MenuRouter
-  def initialize(display, item_reloader, change_reloader, purchase_executor)
+  def initialize(display, item_load_handler, change_reloader, purchase_executor)
     @display = display
-    @item_reloader = item_reloader
+    @item_load_handler = item_load_handler
     @change_reloader = change_reloader
     @purchase_executor = purchase_executor
   end
@@ -19,7 +19,7 @@ class MenuRouter
     when '4'
       @display.show_machine_status
     when '5'
-      @item_reloader.load_items_for_machine
+      @item_load_handler.load_items_for_machine
     when '6'
       @change_reloader.reload_change_for_machine
     when 'q', 'quit', 'exit'

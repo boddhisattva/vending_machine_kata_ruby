@@ -1,5 +1,5 @@
 
-RSpec.describe ItemReloadHandler do
+RSpec.describe ItemLoadHandler do
   let(:vending_machine) { double('VendingMachine') }
   let(:display) { double('VendingMachineDisplay') }
   let(:input_handler) { double('UserInputHandler') }

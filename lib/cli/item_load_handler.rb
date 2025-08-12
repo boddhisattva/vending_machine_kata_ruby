@@ -1,4 +1,4 @@
-class ItemReloadHandler
+class ItemLoadHandler
   def initialize(vending_machine, display, input_handler)
     @vending_machine = vending_machine
     @display = display
