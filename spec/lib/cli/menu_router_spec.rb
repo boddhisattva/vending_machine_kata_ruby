@@ -1,14 +1,13 @@
 # frozen_string_literal: true
 
-
 RSpec.describe MenuRouter do
   let(:display) { double('VendingMachineDisplay') }
-  let(:item_reloader) { double('ItemReloadHandler') }
+  let(:item_load_handler) { double('ItemLoadHandler') }
   let(:change_reloader) { double('ChangeReloadHandler') }
   let(:purchase_executor) { double('PurchaseExecutor') }
 
   let(:router) do
-    described_class.new(display, item_reloader, change_reloader, purchase_executor)
+    described_class.new(display, item_load_handler, change_reloader, purchase_executor)
   end
 
   describe '#initialize' do
@@ -48,7 +47,7 @@ RSpec.describe MenuRouter do
 
     context 'when choice is "5"' do
       it 'reloads items for machine' do
-        expect(item_reloader).to receive(:load_items_for_machine)
+        expect(item_load_handler).to receive(:load_items_for_machine)
         router.route('5')
       end
     end

@@ -127,13 +127,13 @@ describe VendingMachine do
 
     context 'integration with ItemLoader' do
       it 'delegates to ItemLoader for processing' do
-        item_reloader = instance_double('ItemLoader')
-        allow(item_reloader).to receive(:load_item).and_return(['Success message', items])
+        item_loader = instance_double('ItemLoader')
+        allow(item_loader).to receive(:load_item).and_return(['Success message', items])
 
         custom_machine = VendingMachine.new(items, balance, PaymentProcessor.new,
-                                            SingleUserSessionManager.new, item_reloader, nil)
+                                            SingleUserSessionManager.new, item_loader, nil)
 
-        expect(item_reloader).to receive(:load_item).with(items, hash_including('Coke' => items[0]), 'Coke', 5, nil)
+        expect(item_loader).to receive(:load_item).with(items, hash_including('Coke' => items[0]), 'Coke', 5, nil)
         custom_machine.load_item('Coke', 5)
       end
     end

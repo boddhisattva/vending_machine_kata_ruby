@@ -11,7 +11,7 @@ require_relative '../lib/cli/item_selector'
 require_relative '../lib/cli/purchase_session_orchestrator'
 require_relative '../lib/cli/currency_formatter'
 require_relative '../lib/cli/vending_machine_initializer'
-require_relative '../lib/cli/item_reload_handler'
+require_relative '../lib/cli/item_load_handler'
 require_relative '../lib/cli/change_reload_handler'
 require_relative '../lib/cli/menu_router'
 require_relative '../lib/cli/purchase_executor'
@@ -49,7 +49,7 @@ class VendingMachineCLI
       @input_handler
     )
 
-    @item_reloader = ItemReloadHandler.new(@vending_machine, @display, @input_handler)
+    @item_load_handler = ItemLoadHandler.new(@vending_machine, @display, @input_handler)
     @change_reloader = ChangeReloadHandler.new(
       @vending_machine,
       @currency_formatter,
@@ -68,7 +68,7 @@ class VendingMachineCLI
 
     @menu_router = MenuRouter.new(
       @display,
-      @item_reloader,
+      @item_load_handler,
       @change_reloader,
       @purchase_executor
     )
