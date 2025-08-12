@@ -50,7 +50,7 @@ class VendingMachineCLI
     )
 
     @item_load_handler = ItemLoadHandler.new(@vending_machine, @display, @input_handler)
-    @change_reloader = ChangeReloadHandler.new(
+    @change_reload_handler = ChangeReloadHandler.new(
       @vending_machine,
       @currency_formatter,
       @payment_parser,
@@ -69,7 +69,7 @@ class VendingMachineCLI
     @menu_router = MenuRouter.new(
       @display,
       @item_load_handler,
-      @change_reloader,
+      @change_reload_handler,
       @purchase_executor
     )
 

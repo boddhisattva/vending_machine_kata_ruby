@@ -3,11 +3,11 @@
 RSpec.describe MenuRouter do
   let(:display) { double('VendingMachineDisplay') }
   let(:item_load_handler) { double('ItemLoadHandler') }
-  let(:change_reloader) { double('ChangeReloadHandler') }
+  let(:change_reload_handler) { double('ChangeReloadHandler') }
   let(:purchase_executor) { double('PurchaseExecutor') }
 
   let(:router) do
-    described_class.new(display, item_load_handler, change_reloader, purchase_executor)
+    described_class.new(display, item_load_handler, change_reload_handler, purchase_executor)
   end
 
   describe '#initialize' do
@@ -54,7 +54,7 @@ RSpec.describe MenuRouter do
 
     context 'when choice is "6"' do
       it 'reloads change for machine' do
-        expect(change_reloader).to receive(:reload_change_for_machine)
+        expect(change_reload_handler).to receive(:reload_change_for_machine)
         router.route('6')
       end
     end
