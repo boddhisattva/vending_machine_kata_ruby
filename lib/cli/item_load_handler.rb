@@ -48,7 +48,7 @@ class ItemLoadHandler
   end
 
   def item_already_exists?(item_name)
-    @vending_machine.items.any? { |item| item.name == item_name }
+    @vending_machine.item_exists?(item_name)
   end
 
   def reload_existing_item(item_name, quantity)

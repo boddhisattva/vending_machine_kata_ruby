@@ -1000,4 +1000,16 @@ describe VendingMachine do
       end
     end
   end
+
+  describe '#item_exists?' do
+    let(:vending_machine) { VendingMachine.new(items, balance) }
+
+    it 'returns true when item exists' do
+      expect(vending_machine.item_exists?('Coke')).to be true
+    end
+
+    it 'returns false when item does not exist' do
+      expect(vending_machine.item_exists?('Water')).to be false
+    end
+  end
 end
