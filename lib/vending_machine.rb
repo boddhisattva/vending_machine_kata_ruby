@@ -26,18 +26,11 @@ class VendingMachine
     @items_index = build_items_index
   end
 
-  # Keep existing interface for backward compatibility
-  def purchase_item(item_name, payment)
-    item = @items_index[item_name]
-
-    result, @balance = payment_processor.process_payment(item, payment, items, balance)
-    result
-  end
-
-  # New session-based interface
+  # Session-based interface
   def start_purchase(item_name)
     item = @items_index[item_name]
     return 'Item not found' unless item
+    return 'Item not available' unless item.quantity > 0
 
     result = @session_manager.start_session(item)
     if result[:success]
