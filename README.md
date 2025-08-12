@@ -6,10 +6,10 @@ Solves for building a Vending Machine  based on this [problem statement](https:/
 ## Diagrammatic Representation of Key Program workflow scenarios
 Please refer to the [cli_flow_diagrams](https://github.com/boddhisattva/vending_machine_kata_ruby/blob/main/docs/cli_flow_diagrams.md) for Key workflows
 involving the Vending Machine usage including
-- Happy path
-- Reload functionality
-- Partial payment and being prompted to pay more
-- Key components that make up the app
+- Happy path to purchase an item
+- Load(new item) & Reload(existing item & coins) functionality
+- Initial Partial payment and being prompted to pay more to complete transaction
+- Auto cancel payment & issue refund when machine has insufficient balance to render change to complete purchase
 
 
 ## Architecture & Design
