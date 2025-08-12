@@ -14,9 +14,9 @@ class PaymentInputParser
   private
 
   def input_looks_like_hash?(input)
-    clean_input = input.strip
+    trimmed_input = input.strip
 
-    unless clean_input.match?(/\A\s*\{.*\}\s*\z/)
+    unless trimmed_input.start_with?('{') && trimmed_input.end_with?('}')
       puts 'Invalid format. Input must be in hash format like {100 => 2, 50 => 1}'
       return false
     end
@@ -53,14 +53,21 @@ class PaymentInputParser
   end
 
   def parse_single_coin_entry(entry)
-    match = entry.match(/\A\s*(\d+)\s*=>\s*(\d+)\s*\z/)
+    coin_parts = entry.split('=>').map(&:strip)
 
-    unless match
+    if coin_parts.size != 2
       puts "Invalid pair format: '#{entry}'. Expected format: 'denomination => count'"
       return [nil, nil]
     end
 
-    [match[1].to_i, match[2].to_i]
+    begin
+      denomination = Integer(coin_parts[0])
+      count = Integer(coin_parts[1])
+      [denomination, count]
+    rescue ArgumentError
+      puts "Invalid pair format: '#{entry}'. Expected format: 'denomination => count'"
+      [nil, nil]
+    end
   end
 
   def count_is_valid?(count)
