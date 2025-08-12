@@ -264,96 +264,6 @@ describe VendingMachine do
     end
   end
 
-  describe 'purchasing an item' do
-    context 'given an item name & balance' do
-      let(:selected_item) { Item.new('Coke', 150, 1) }
-
-      context 'when the item is available' do
-        context 'when the user pays more than the item price' do
-          it 'returns the item & balance' do
-            vending_machine = VendingMachine.new(items, balance)
-            expect(vending_machine.purchase_item('Coke',
-                                                 { 200 => 1 })).to eq("Thank you for your purchase of #{selected_item.name}. Please collect your item and change: 1 x 50c")
-          end
-
-          it 'properly updates the machine balance with correct coin denominations' do
-            vending_machine = VendingMachine.new(items, balance)
-            initial_balance = vending_machine.balance.amount.dup
-
-            vending_machine.purchase_item('Coke', { 200 => 1 })
-
-            # Verify that the balance has been updated
-            expect(vending_machine.balance.amount).not_to eq(initial_balance)
-
-            # Verify that the total amount is correct (should be initial + 200 - 50 change)
-            expected_total = initial_balance.sum { |denomination, count| denomination * count } + 200 - 50
-            expect(vending_machine.balance.calculate_total_amount).to eq(expected_total)
-          end
-
-          it 'decrements the item quantity after successful purchase' do
-            vending_machine = VendingMachine.new(items, balance)
-            coke_item = vending_machine.items.find { |item| item.name == 'Coke' }
-            initial_quantity = coke_item.quantity
-
-            vending_machine.purchase_item('Coke', { 200 => 1 })
-
-            expect(coke_item.quantity).to eq(initial_quantity - 1)
-          end
-        end
-
-        context 'when the user pays the exact amount' do
-          it 'returns the item & no change is given & it also decrements the item quantity' do
-            vending_machine = VendingMachine.new(items, balance)
-            coke_item = vending_machine.items.find { |item| item.name == 'Coke' }
-            initial_quantity = coke_item.quantity
-
-            expect(vending_machine.purchase_item('Coke',
-                                                 { 100 => 1,
-                                                   50 => 1 })).to eq('Thank you for your purchase of Coke. Please collect your item.')
-
-            expect(coke_item.quantity).to eq(initial_quantity - 1)
-          end
-        end
-
-        context 'when the user pays less than the item price' do
-          it 'clearly specifies the remaining amount pending' do
-            vending_machine = VendingMachine.new(items, balance)
-            expect(vending_machine.purchase_item('Coke',
-                                                 { 100 => 1 })).to eq('You need to pay 50 more cents to purchase Coke')
-          end
-
-          it 'does not decrement the item quantity for failed purchase' do
-            vending_machine = VendingMachine.new(items, balance)
-            coke_item = vending_machine.items.find { |item| item.name == 'Coke' }
-            initial_quantity = coke_item.quantity
-
-            vending_machine.purchase_item('Coke', { 100 => 1 })
-
-            expect(coke_item.quantity).to eq(initial_quantity)
-          end
-        end
-
-
-        context 'when invalid coin denominations are provided' do
-          it 'returns error for various invalid denomination scenarios' do
-            vending_machine = VendingMachine.new(items, balance)
-            
-            # Single invalid denomination
-            expect(vending_machine.purchase_item('Coke', { 25 => 1 }))
-              .to eq('Invalid coin denomination in payment: [25]')
-            
-            # Multiple invalid denominations
-            expect(vending_machine.purchase_item('Coke', { 25 => 1, 75 => 1 }))
-              .to eq('Invalid coin denomination in payment: [25, 75]')
-            
-            # Mixed valid and invalid
-            expect(vending_machine.purchase_item('Coke', { 100 => 1, 25 => 1 }))
-              .to eq('Invalid coin denomination in payment: [25]')
-          end
-        end
-      end
-    end
-  end
 
   describe 'Session-based API' do
     before do
@@ -384,10 +294,6 @@ describe VendingMachine do
       expect(msg).to eq('Item not found')
     end
 
-    it 'old purchase_item API still works' do
-      result = @machine.purchase_item('Coke', { 200 => 1 })
-      expect(result).to include('Thank you for your purchase')
-    end
 
     it 'maintains session after invalid denomination entry and allows correction' do
       @machine.start_purchase('Coke')
@@ -419,8 +325,9 @@ describe VendingMachine do
       balance = Change.new({ 50 => 6, 10 => 10, 20 => 10, 100 => 2, 200 => 1, 5 => 10, 2 => 10, 1 => 2 })
       machine = VendingMachine.new(items, balance)
 
-      # Test the exact scenario that was failing
-      result = machine.purchase_item('Chips', { 200 => 1 })
+      # Test the exact scenario using session-based API
+      machine.start_purchase('Chips')
+      result = machine.insert_payment({ 200 => 1 })
       expect(result).to eq('Thank you for your purchase of Chips. Please collect your item and change: 1 x 100c')
     end
 
@@ -536,8 +443,8 @@ describe VendingMachine do
       balance = Change.new({ 50 => 1 }) # Limited change
       machine = VendingMachine.new(items, balance)
 
-      # Cannot purchase when out of stock
-      result = machine.purchase_item('Coke', { 200 => 1 })
+      # Cannot purchase when out of stock using session-based API
+      result = machine.start_purchase('Coke')
       expect(result).to eq('Item not available')
 
       # Reload items
@@ -548,8 +455,9 @@ describe VendingMachine do
       change_result = machine.reload_change({ 50 => 10 })
       expect(change_result).to include('Successfully added coins')
 
-      # Now purchase should work
-      purchase_result = machine.purchase_item('Coke', { 200 => 1 })
+      # Now purchase should work using session-based API
+      machine.start_purchase('Coke')
+      purchase_result = machine.insert_payment({ 200 => 1 })
       expect(purchase_result).to include('Thank you for your purchase')
     end
   end
@@ -679,8 +587,9 @@ describe VendingMachine do
       it 'reflects updated balance after successful purchase' do
         initial_change = vending_machine.available_change
         
-        # Purchase item that costs 150c with 200c payment (50c change given)
-        vending_machine.purchase_item('Coke', { 200 => 1 })
+        # Purchase item that costs 150c with 200c payment (50c change given) using session API
+        vending_machine.start_purchase('Coke')
+        vending_machine.insert_payment({ 200 => 1 })
         
         # Balance should increase by 150c (200c received - 50c given as change)
         updated_change = vending_machine.available_change
