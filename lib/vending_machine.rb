@@ -130,6 +130,10 @@ class VendingMachine
     @items.map { |item| "#{item.name}: #{item.quantity} units @ €#{format('%.2f', item.price / 100.0)}" }.join("\n")
   end
 
+  def item_exists?(item_name)
+    @items_index.key?(item_name)
+  end
+
   private
 
   def build_items_index

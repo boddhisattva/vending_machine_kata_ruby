@@ -16,6 +16,7 @@ RSpec.describe ItemLoadHandler do
     context 'when reloading existing item' do
       it 'adds quantity to existing item' do
         allow(input_handler).to receive(:safe_gets).and_return('Coke', '3')
+        allow(vending_machine).to receive(:item_exists?).with('Coke').and_return(true)
         allow(vending_machine).to receive(:load_item).with('Coke', 3)
                                                        .and_return('Successfully added 3 units to Coke. New quantity: 8')
 
@@ -32,6 +33,7 @@ RSpec.describe ItemLoadHandler do
 
       it 'handles invalid quantity gracefully' do
         allow(input_handler).to receive(:safe_gets).and_return('Coke', '0')
+        allow(vending_machine).to receive(:item_exists?).with('Coke').and_return(true)
         allow(vending_machine).to receive(:load_item).with('Coke', 0)
                                                        .and_return('Invalid quantity. Please provide a positive number.')
 
@@ -51,6 +53,7 @@ RSpec.describe ItemLoadHandler do
       it 'asks for price and adds new item' do
         allow(vending_machine).to receive(:items).and_return([])
         allow(input_handler).to receive(:safe_gets).and_return('Pepsi', '5', '175')
+        allow(vending_machine).to receive(:item_exists?).with('Pepsi').and_return(false)
         allow(vending_machine).to receive(:load_item).with('Pepsi', 5, 175)
                                                        .and_return('Successfully added new item: Pepsi - €1.75 (5 units)')
 
@@ -68,6 +71,7 @@ RSpec.describe ItemLoadHandler do
       it 'handles invalid price gracefully' do
         allow(vending_machine).to receive(:items).and_return([])
         allow(input_handler).to receive(:safe_gets).and_return('Pepsi', '5', '-100')
+        allow(vending_machine).to receive(:item_exists?).with('Pepsi').and_return(false)
         allow(vending_machine).to receive(:load_item).with('Pepsi', 5, -100)
                                                        .and_return('Invalid price. Please provide a positive number.')
 
