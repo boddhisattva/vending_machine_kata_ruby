@@ -1,4 +1,3 @@
-
 RSpec.describe PaymentInputParser do
   let(:parser) { described_class.new }
 
@@ -48,13 +47,15 @@ RSpec.describe PaymentInputParser do
       end
 
       it 'handles negative numbers as invalid format' do
-        expect { parser.parse('{100 => -1}') }.to output(/Invalid pair format/).to_stdout
+        expect { parser.parse('{100 => -1}') }.to output(/Invalid count/).to_stdout
         result = parser.parse('{100 => -1}')
         expect(result).to be_nil
       end
 
       it 'handles mixed valid and invalid entries' do
-        expect { parser.parse('{100 => 2, 50 = 1}') }.to output(/Invalid pair format/).to_stdout
+        expect do
+          parser.parse('{100 => 2, 50 = 1}')
+        end.to output(/Invalid pair format: '50 = 1'. Expected format: 'denomination => count'/).to_stdout
         expect(parser.parse('{100 => 2, 50 = 1}')).to be_nil
       end
     end
