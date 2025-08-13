@@ -131,7 +131,7 @@ describe VendingMachine do
         allow(item_loader).to receive(:load_item).and_return(['Success message', items])
 
         custom_machine = VendingMachine.new(items, balance, PaymentProcessor.new,
-                                            SingleUserSessionManager.new, item_loader, nil)
+                                            SessionManager.new, item_loader, nil)
 
         expect(item_loader).to receive(:load_item).with(items, hash_including('Coke' => items[0]), 'Coke', 5, nil)
         custom_machine.load_item('Coke', 5)
@@ -410,7 +410,7 @@ describe VendingMachine do
         allow(change_reloader).to receive(:reload_change).and_return(['Success message', @balance])
 
         custom_machine = VendingMachine.new(@items, @balance, PaymentProcessor.new,
-                                            SingleUserSessionManager.new, nil, change_reloader)
+                                            SessionManager.new, nil, change_reloader)
 
         expect(change_reloader).to receive(:reload_change).with(@balance, { 100 => 5 })
         custom_machine.reload_change({ 100 => 5 })

@@ -2,7 +2,6 @@
 
 require_relative 'payment_processor'
 require_relative 'session_manager'
-require_relative 'single_user_session_manager'
 require_relative 'item_loader'
 require_relative 'change_reloader'
 require_relative 'change_validator'
@@ -13,7 +12,7 @@ class VendingMachine
   attr_accessor :balance
 
   def initialize(items, balance, payment_processor = PaymentProcessor.new,
-                 session_manager = SingleUserSessionManager.new,
+                 session_manager = SessionManager.new,
                  item_loader = nil, change_reloader = nil)
     @items = items
     @balance = balance
