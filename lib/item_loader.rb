@@ -1,5 +1,4 @@
 require_relative 'reload_validator'
-require_relative 'item'
 
 class ItemLoader
   def initialize(reload_validator = ReloadValidator.new)

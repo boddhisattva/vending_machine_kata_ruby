@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'change'
-require_relative 'change_calculator'
-
 # Validates if exact change can be made for a transaction
 class ChangeValidator
   def initialize(change_calculator = ChangeCalculator.new)

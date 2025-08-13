@@ -1,21 +1,12 @@
-require_relative 'payment_validator'
 require_relative 'change_calculator'
 
 class PaymentProcessor
-  def initialize(payment_validator = PaymentValidator.new, change_calculator = ChangeCalculator.new)
-    @payment_validator = payment_validator
+  def initialize(change_calculator = ChangeCalculator.new)
     @change_calculator = change_calculator
   end
 
-  def process_payment(item, payment, _items, balance)
-    validation_result = @payment_validator.validate_purchase(item, payment, balance)
-    return validation_result unless validation_result.nil?
-
+  def process_payment(item, payment, balance)
     total_payment_for_item = payment.sum { |denom, count| denom * count }
-
-    payment_validation = @payment_validator.validate_payment_amount(item, total_payment_for_item, balance)
-    return payment_validation unless payment_validation.nil?
-
     process_transaction(item, payment, total_payment_for_item, balance)
   end
 

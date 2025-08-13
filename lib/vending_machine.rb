@@ -164,7 +164,7 @@ class VendingMachine
 
   def process_completed_session(session)
     # Process the payment through PaymentProcessor
-    result, @balance = @payment_processor.process_payment(session.item, session.accumulated_payment, items, balance)
+    result, @balance = @payment_processor.process_payment(session.item, session.accumulated_payment, balance)
 
     # Clear the session
     @current_session_id = nil
