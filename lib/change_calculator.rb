@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'change'
-
 # Handles change calculation logic
 class ChangeCalculator
   # Returns [change_given_hash, new_balance_hash] or [nil, original_balance] if cannot make change

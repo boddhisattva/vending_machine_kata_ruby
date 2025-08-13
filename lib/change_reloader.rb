@@ -1,6 +1,3 @@
-require_relative 'reload_validator'
-require_relative 'change'
-
 class ChangeReloader
   def initialize(reload_validator = ReloadValidator.new)
     @reload_validator = reload_validator
@@ -20,7 +17,7 @@ class ChangeReloader
 
   def build_new_balance(balance, coins_to_add)
     new_balance_hash = balance.amount.dup
-    
+
     coins_to_add.each do |denomination, count|
       new_balance_hash[denomination] ||= 0
       new_balance_hash[denomination] += count

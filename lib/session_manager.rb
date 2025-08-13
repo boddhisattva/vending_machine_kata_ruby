@@ -1,6 +1,5 @@
 require 'securerandom'
 require_relative 'payment_session'
-require_relative 'change'
 require_relative 'cli/currency_formatter'
 
 class SessionManager
