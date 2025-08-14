@@ -1,7 +1,7 @@
 # Vending Machine (Ruby)
 
 ## About
-Solves for building a Vending Machine  based on this [problem statement](https://github.com/boddhisattva/vending_machine_kata_ruby/blob/main/problem_statement.md):
+Solves for building a Vending Machine  based on this [problem statement](https://github.com/boddhisattva/vending_machine_kata_ruby/blob/main/problem_statement.md)
 
 ## Diagrammatic Representation of Key Program workflow scenarios
 Please refer to the [cli_flow_diagrams](https://github.com/boddhisattva/vending_machine_kata_ruby/blob/main/docs/cli_flow_diagrams.md) for Key workflows
@@ -10,7 +10,6 @@ involving the Vending Machine usage including
 - Load(new item) & Reload(existing item & coins) functionality
 - Initial Partial payment and being prompted to pay more to complete transaction
 - Auto cancel payment & issue refund when machine has insufficient balance to render change to complete purchase
-
 
 ## Architecture & Design
 
@@ -46,7 +45,9 @@ involving the Vending Machine usage including
 
   - **SessionManager**: Manages multi-step purchase sessions
 
-  - **ReloadManager**: Handles inventory and change reloading
+  - **ChangeReloader**: Handles change reloading
+
+  - **ItemLoader**: Handles adding a new item & reloading existing items
 
   - **Validators**: Dedicated classes for each validation concern
 
@@ -70,9 +71,9 @@ involving the Vending Machine usage including
 
   - MenuRouter: Routes menu choices to appropriate actions
 
-  - ItemLoader: Handles CLI flow for loading items interactively
+  - ItemLoadHandler: Handles CLI flow for loading items interactively
 
-  - ChangeReloader: Handles CLI flow for reloading change interactively
+  - ChangeReloadHandler: Handles CLI flow for reloading change interactively
 
 
   ### Session-Based Purchase Flow
@@ -97,7 +98,7 @@ involving the Vending Machine usage including
 - Add reload functionality for
   - Existing and New Items
   - To Add change
-- Coin denominations supported: 1, 2, 5, 10, 20, 50, 100, 200 cents
+- Coin denominations supported: 1, 2, 5, 10, 20, 50 cents, €1, €2 coin
 - Displays available change and coin breakdown in plain English
 
 ## Performance Optimizations
@@ -174,6 +175,9 @@ The machine starts with the following coins:
 ## Areas of Improvements
 - Refactor specs further(remove duplicate/unnecessary ones where needed)
 - Refactor existing validation logic across different places/classes to remove duplication where applicable & feasible
+- Current end to end specs have room for improvement to go through the complete session flow
 
 ### Enhancements/Features to Add
 - Add a more cleaner ability to abort adding a new item(right now we have to give some invalid values while inserting a new item for the menu to reset)
+- If there is no quantity available to purchase an item, it should not display it in the list of available items to purchase
+- Add the ability to purchase multiple quantities of an item at a time
