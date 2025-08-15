@@ -173,9 +173,10 @@ The machine starts with the following coins:
 - Coin breakdown is always shown in plain English
 
 ## Areas of Improvements
-- Refactor specs further(remove duplicate/unnecessary ones where needed)
+- Refactor specs further
 - Refactor existing validation logic across different places/classes to remove duplication where applicable & feasible
 - Current end to end specs have room for improvement to go through the complete session flow
+- UI flow can be further improved to auto cancel
 
 ### Enhancements/Features to Add
 - Add a more cleaner ability to abort adding a new item(right now we have to give some invalid values while inserting a new item for the menu to reset)
