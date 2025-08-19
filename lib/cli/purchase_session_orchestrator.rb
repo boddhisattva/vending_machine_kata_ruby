@@ -7,8 +7,8 @@ class PurchaseSessionOrchestrator
   end
 
   def execute_purchase_for(item)
-    start_purchase_session_for(item)
-    collect_payment_until_complete
+    session_started = start_purchase_session_for(item)
+    collect_payment_until_complete if session_started
   end
 
   private
@@ -17,6 +17,10 @@ class PurchaseSessionOrchestrator
     puts 'Starting purchase session...'
     result = @vending_machine.start_purchase(item.name)
     puts result
+
+    # Check if session was successfully started
+    # Session starts successfully if the message asks for payment
+    result.include?('Please insert')
   end
 
   def collect_payment_until_complete
